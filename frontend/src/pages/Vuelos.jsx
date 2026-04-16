@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/api';
 import FormularioVuelo from '../components/FormularioVuelo';
+import FormularioAerolinea from '../components/FormularioAerolinea'; // IMPORTAMOS TU PIEZA
 
 const Vuelos = () => {
   const [vuelos, setVuelos] = useState([]);
@@ -61,7 +62,15 @@ const Vuelos = () => {
         <p className="text-slate-500 mt-2">Gestión y monitorización de flota en tiempo real</p>
       </header>
 
-      {/* SECCIÓN DEL FORMULARIO: Le pasamos la función cargarVuelos como "prop" */}
+      {/* SECCIÓN DEL NUEVO FORMULARIO DE AEROLÍNEAS */}
+      <section className="mb-8 border-b-2 border-slate-200 pb-8">
+        <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+          <span>🏢</span> Registrar Nueva Aerolínea
+        </h2>
+        <FormularioAerolinea />
+      </section>
+
+      {/* SECCIÓN DEL FORMULARIO DE VUELOS: Le pasamos la función cargarVuelos como "prop" */}
       <section className="mb-12">
         <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
           <span>➕</span> Registrar Nuevo Vuelo
