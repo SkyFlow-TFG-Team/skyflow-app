@@ -31,6 +31,30 @@ const Vuelos = () => {
   }
 };
 
+const reservarVuelo = async (vueloId) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Debes iniciar sesión para reservar");
+    return;
+  }
+
+  try {
+    await api.post("/reservas", 
+      { vuelo_id: vueloId },
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    alert("✈️ Reserva realizada con éxito");
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al reservar");
+  }
+};
+
   // Se ejecuta solo una vez al montar el componente
   useEffect(() => {
     let montado = true; // Controlamos si el componente sigue en pantalla
@@ -140,6 +164,12 @@ const Vuelos = () => {
                       <p className="text-2xl font-black text-blue-600">{vuelo.precio}€</p>
                     </div>
                   </div>
+                  <button
+                    onClick={() => reservarVuelo(vuelo.id)}
+                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition"
+                  >
+                    Reservar vuelo
+                  </button>
                 </div>
               </div>
             ))}

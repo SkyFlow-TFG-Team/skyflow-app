@@ -80,9 +80,38 @@ const Header = () => {
                 <div className="px-4 py-2 border-b bg-slate-50">
                   <p className="text-[10px] text-slate-400 font-bold uppercase">{perfil?.rol || 'Usuario'}</p>
                 </div>
-                <button onClick={() => { navigate("/"); setMenuAbierto(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">Panel Control</button>
+
+                {/* 🔵 NUEVOS BOTONES AÑADIDOS */}
+                <button 
+                  onClick={() => { navigate("/profile"); setMenuAbierto(false); }} 
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                >
+                  My Profile
+                </button>
+
+                <button 
+                  onClick={() => { navigate("/my-bookings"); setMenuAbierto(false); }} 
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                >
+                  My Bookings
+                </button>
+                {/* 🔵 FIN DE LO AÑADIDO */}
+
+                <button 
+                  onClick={() => { navigate("/"); setMenuAbierto(false); }} 
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                >
+                  Panel Control
+                </button>
+
                 <hr className="my-1" />
-                <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 font-bold hover:bg-red-50">Cerrar sesión</button>
+
+                <button 
+                  onClick={handleLogout} 
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 font-bold hover:bg-red-50"
+                >
+                  Cerrar sesión
+                </button>
               </div>
             )}
           </div>
