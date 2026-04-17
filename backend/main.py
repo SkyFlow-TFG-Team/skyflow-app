@@ -1,6 +1,7 @@
+from routers import vuelos
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import vuelos, aerolineas
+from routers import aerolineas
 
 app = FastAPI(title="SkyFlow API")
 
