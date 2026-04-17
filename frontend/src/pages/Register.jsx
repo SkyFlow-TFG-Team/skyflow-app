@@ -9,47 +9,38 @@ const Register = () => {
   const [apellidos, setApellidos] = useState('');
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+const handleRegister = async (e) => {
     e.preventDefault();
 
-    console.log("Iniciando registro para:", email);
+    // 1. Crear usuario en Auth
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-    // 1. Crear el usuario en el sistema de Autenticación de Supabase
-    const { data, error } = await supabase.auth.signUp({ 
-      email: email, 
-      password: password 
-    });
+    if (error) return alert("Error: " + error.message);
 
-    if (error) {
-      console.error("Error en Auth:", error.message);
-      return alert("Error en el registro: " + error.message);
-    }
-
-    const user = data?.user;
-
-    if (user) {
-      console.log("Usuario creado en Auth con ID:", user.id);
-
-      // 2. Intentar insertar los datos en nuestra tabla 'perfiles'
+    if (data.user) {
+      // 2. Crear perfil en la tabla 'perfiles'
       const { error: pError } = await supabase
         .from('perfiles')
         .insert([
           { 
-            id: user.id, // Enlazamos con el ID que acaba de crear Supabase
+            id: data.user.id, 
             nombre: nombre, 
             apellidos: apellidos, 
-            rol: 'admin' 
+            rol: 'usuario' 
           }
         ]);
 
       if (pError) {
-        // 🚨 SI SALE EL ERROR DEL PERFIL, ESTO DARÁ LA CLAVE EN LA CONSOLA:
-        console.error("DETALLE DEL ERROR EN TABLA PERFILES:", pError);
-        alert(`Usuario registrado, pero hubo un error con el perfil: ${pError.message}`);
+        console.error("Error al crear perfil:", pError);
       } else {
-        console.log("Perfil creado correctamente en la base de datos.");
-        alert("¡Registro completado con éxito! Ahora puedes iniciar sesión.");
-        navigate('/login'); // Redirigir al login
+        alert("¡Registro completado! Por favor, inicia sesión.");
+        
+        // 🚀 EL TRUCO: Cerramos la sesión automática del registro
+        await supabase.auth.signOut();
+        localStorage.removeItem("token");
+        
+        // Ahora sí, redirigimos al login con el Header limpio
+        navigate('/login'); 
       }
     }
   };

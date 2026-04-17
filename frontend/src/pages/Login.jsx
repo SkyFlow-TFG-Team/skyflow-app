@@ -14,10 +14,11 @@ const Login = () => {
     if (error) return alert("Error: " + error.message);
 
     if (data.session) {
+      // Guardamos el token para el backend de Python
       localStorage.setItem("token", data.session.access_token);
       alert("¡Bienvenido de nuevo!");
-      navigate('/'); // 🚀 Redirigir a la Principal
-      window.location.reload(); // Recarga rápida para actualizar el Header
+      // Redirigimos sin recargar la página
+      navigate('/'); 
     }
   };
 
