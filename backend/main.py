@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import vuelos, aerolineas
+from routers import vuelos, aerolineas, usuarios
 
 app = FastAPI(title="SkyFlow API")
 
@@ -15,6 +15,7 @@ app.add_middleware(
 # Aquí iremos añadiendo más routers según crezcan las funciones
 app.include_router(vuelos.router)
 app.include_router(aerolineas.router)
+app.include_router(usuarios.router)
 
 @app.get("/")
 def root():
