@@ -1,18 +1,36 @@
 import { useEffect, useState } from 'react';
 import api from '../api/api';
 import FormularioVuelo from '../components/FormularioVuelo';
-import FormularioAerolinea from '../components/FormularioAerolinea'; // IMPORTAMOS TU PIEZA
+import FormularioAerolinea from '../components/FormularioAerolinea'; 
 
 const Vuelos = () => {
   const [vuelos, setVuelos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  
+  // Estados para el buscador
+  const [filtroOrigen, setFiltroOrigen] = useState('');
+  const [filtroDestino, setFiltroDestino] = useState('');
 
-  // Definimos la función de carga fuera del useEffect para poder reutilizarla
-  const cargarVuelos = async () => {
+  /**
+   * Función para cargar vuelos. 
+   * Se ha eliminado el setCargando(true) para evitar que la página "salte" al inicio
+   * durante las búsquedas o al limpiar filtros.
+   */
+  const cargarVuelos = async (origenOverride, destinoOverride) => {
     try {
-      const res = await api.get('/vuelos');
+      // Determinamos qué valores enviar (los del estado o los forzados por el botón limpiar)
+      const origenFinal = origenOverride !== undefined ? origenOverride : filtroOrigen;
+      const destinoFinal = destinoOverride !== undefined ? destinoOverride : filtroDestino;
+
+      const res = await api.get('/vuelos', {
+        params: {
+          origen: origenFinal || undefined,
+          destino: destinoFinal || undefined
+        }
+      });
+      
       setVuelos(res.data);
-      setCargando(false);
+      setCargando(false); // Finaliza la carga inicial
     } catch (err) {
       console.error("Error al conectar con la torre de control:", err);
       setCargando(false);
@@ -20,31 +38,30 @@ const Vuelos = () => {
   };
 
   const eliminarVuelos = async (id) => {
-  if (window.confirm("¿Seguro que quieres eliminar este vuelo?")) {
-    try {
-      await api.delete(`/vuelos/${id}`);
-      cargarVuelos(); // Recargamos la lista tras borrar
-    } catch (err) {
-      console.error("Error al borrar:", err);
-      alert("No se pudo eliminar el vuelo");
+    if (window.confirm("¿Seguro que quieres eliminar este vuelo?")) {
+      try {
+        await api.delete(`/vuelos/${id}`);
+        cargarVuelos(); 
+      } catch (err) {
+        console.error("Error al borrar:", err);
+        alert("No se pudo eliminar el vuelo");
+      }
     }
-  }
-};
+  };
 
-  // Se ejecuta solo una vez al montar el componente
   useEffect(() => {
-    let montado = true; // Controlamos si el componente sigue en pantalla
-
+    let montado = true;
     const inicializarDatos = async () => {
         if (montado) {
             await cargarVuelos();
         }
     };
     inicializarDatos();
-    
     return () => { montado = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Solo se muestra la pantalla de carga la primera vez que entramos
   if (cargando) {
     return (
       <div className="flex justify-center items-center min-h-screen text-xl font-semibold text-slate-600">
@@ -62,7 +79,7 @@ const Vuelos = () => {
         <p className="text-slate-500 mt-2">Gestión y monitorización de flota en tiempo real</p>
       </header>
 
-      {/* SECCIÓN DEL NUEVO FORMULARIO DE AEROLÍNEAS */}
+      {/* SECCIÓN REGISTRAR AEROLÍNEA */}
       <section className="mb-8 border-b-2 border-slate-200 pb-8">
         <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
           <span>🏢</span> Registrar Nueva Aerolínea
@@ -70,7 +87,7 @@ const Vuelos = () => {
         <FormularioAerolinea />
       </section>
 
-      {/* SECCIÓN DEL FORMULARIO DE VUELOS: Le pasamos la función cargarVuelos como "prop" */}
+      {/* SECCIÓN REGISTRAR VUELO */}
       <section className="mb-12">
         <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
           <span>➕</span> Registrar Nuevo Vuelo
@@ -78,15 +95,56 @@ const Vuelos = () => {
         <FormularioVuelo onVueloCreado={cargarVuelos} />
       </section>
 
-      {/* SECCIÓN DE LA LISTA */}
+      {/* SECCIÓN LISTA Y BUSCADOR */}
       <section>
         <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
           <span>🛫</span> Vuelos Activos
         </h2>
+
+        {/* BARRA DE BÚSQUEDA */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1">
+            <label className="block text-xs font-bold text-gray-500 uppercase">Buscar Origen</label>
+            <input 
+              type="text" 
+              placeholder="Ej. Madrid" 
+              value={filtroOrigen}
+              onChange={(e) => setFiltroOrigen(e.target.value)}
+              className="w-full border rounded-md p-2 mt-1" 
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-bold text-gray-500 uppercase">Buscar Destino</label>
+            <input 
+              type="text" 
+              placeholder="Ej. Paris" 
+              value={filtroDestino}
+              onChange={(e) => setFiltroDestino(e.target.value)}
+              className="w-full border rounded-md p-2 mt-1" 
+            />
+          </div>
+          <button 
+            onClick={() => cargarVuelos()}
+            className="bg-slate-800 text-white font-bold py-2 px-6 rounded-md hover:bg-slate-900 transition-all shadow-sm h-[42px]"
+          >
+            🔍 Buscar
+          </button>
+          <button 
+            onClick={() => {
+              setFiltroOrigen('');
+              setFiltroDestino('');
+              // Actualización instantánea y silenciosa sin mover el scroll
+              cargarVuelos('', ''); 
+            }}
+            className="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-md hover:bg-slate-300 transition-all shadow-sm h-[42px]"
+          >
+            Limpiar
+          </button>
+        </div>
         
         {vuelos.length === 0 ? (
           <div className="bg-white p-10 rounded-xl border border-dashed border-slate-300 text-center text-slate-400">
-            No hay vuelos registrados en el sistema.
+            No hay vuelos que coincidan con la búsqueda.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -101,8 +159,8 @@ const Vuelos = () => {
                     Confirmado
                   </span>
                   <button
-                  onClick={() => eliminarVuelos(vuelo.id)}
-                  className="text-xs bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full hover:bg-red-500 hover:text-white transition-colors uppercase font-bold"
+                    onClick={() => eliminarVuelos(vuelo.id)}
+                    className="text-xs bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full hover:bg-red-500 hover:text-white transition-colors uppercase font-bold"
                   >
                     Borrar
                   </button>
@@ -133,7 +191,7 @@ const Vuelos = () => {
                   <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-bold">Aerolínea</p>
-                      <p className="text-slate-700 font-semibold italic">ID: {vuelo.aerolineas?.nombre || "Compañia desconocida"}</p>
+                      <p className="text-slate-700 font-semibold italic">{vuelo.aerolineas?.nombre || "Compañia desconocida"}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-slate-400 uppercase font-bold">Tarifa</p>
