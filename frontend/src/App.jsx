@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from "./components/Header";
-import Vuelos from "./pages/vuelos";
+import Vuelos from "./pages/Vuelos";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
-import AssignedFlights from './pages/AssignedFlights';
+import AssignedFlights from "./pages/AssignedFligths"
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
