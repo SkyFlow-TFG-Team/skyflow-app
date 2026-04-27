@@ -4,6 +4,36 @@ import FormularioVuelo from '../components/FormularioVuelo';
 import FormularioAerolinea from '../components/FormularioAerolinea';
 import { supabase } from "../supabaseClient";
 
+// Histograma de precios con CSS puro (sin dependencias extra)
+const PreciosHistograma = ({ vuelos }) => {
+  const precios = vuelos.map(v => v.precio).sort((a, b) => a - b);
+  if (!precios.length) return <p className="text-xs text-slate-300">Sin datos</p>;
+
+  const min = precios[0];
+  const max = precios[precios.length - 1];
+  const step = Math.ceil((max - min + 1) / 5);
+  const bins = Array.from({ length: 5 }, (_, i) => ({
+    rango: `${min + i * step}€`,
+    vuelos: precios.filter(p => p >= min + i * step && p < min + (i + 1) * step).length,
+  }));
+  const maxBin = Math.max(...bins.map(b => b.vuelos), 1);
+
+  return (
+    <div className="flex items-end gap-2 h-28 w-full pt-2">
+      {bins.map((bin, i) => (
+        <div key={i} className="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+          <span className="text-xs text-slate-400">{bin.vuelos || ''}</span>
+          <div
+            className="w-full bg-blue-500 rounded-t-md transition-all duration-700"
+            style={{ height: `${(bin.vuelos / maxBin) * 100}%`, minHeight: bin.vuelos ? 4 : 0 }}
+          />
+          <span className="text-xs text-slate-400 truncate w-full text-center">{bin.rango}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const Vuelos = () => {
   const [vuelos, setVuelos] = useState([]);
   const [perfil, setPerfil] = useState(null);
@@ -12,6 +42,37 @@ const Vuelos = () => {
   // Estados para el buscador
   const [filtroOrigen, setFiltroOrigen] = useState('');
   const [filtroDestino, setFiltroDestino] = useState('');
+
+  // 📊 ESTADÍSTICAS
+  const totalVuelos = vuelos.length;
+
+  const contadorDestinos = vuelos.reduce((acc, v) => {
+    acc[v.destino] = (acc[v.destino] || 0) + 1;
+    return acc;
+  }, {});
+
+  const destinosOrdenados = Object.entries(contadorDestinos).sort((a, b) => b[1] - a[1]);
+  const maxCount = destinosOrdenados[0]?.[1] || 1;
+
+  const destinoMasRepetido = (() => {
+    if (vuelos.length === 0) return "-";
+
+    const contador = {};
+    vuelos.forEach(v => {
+      contador[v.destino] = (contador[v.destino] || 0) + 1;
+    });
+
+    return Object.entries(contador).sort((a, b) => b[1] - a[1])[0][0];
+  })();
+
+  const vueloMasCaro = vuelos.reduce((max, v) => 
+    v.precio > (max?.precio || 0) ? v : max, null
+  );
+
+  const vueloMasBarato = vuelos.reduce((min, v) => 
+    v.precio < (min?.precio || Infinity) ? v : min, null
+  );
+
 
   // 1. Función para cargar vuelos (con filtros)
   const cargarVuelos = async (origenOverride, destinoOverride) => {
@@ -110,6 +171,87 @@ const Vuelos = () => {
         </h1>
         <p className="text-slate-500 mt-2">Gestión y monitorización de flota en tiempo real</p>
       </header>
+
+      {/* 📊 DASHBOARD SOLO ADMIN */}
+      {perfil?.rol === "admin" && (
+        <div className="mb-10 space-y-4">
+
+          {/* Tarjetas de métricas */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+            <div className="bg-white rounded-xl border border-slate-100 p-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t-xl" />
+              <p className="text-xs text-slate-400 mb-1">Total vuelos</p>
+              <p className="text-3xl font-semibold text-blue-600">{totalVuelos}</p>
+              <p className="text-xs text-slate-300 mt-1 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                en tiempo real
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-100 p-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-400 rounded-t-xl" />
+              <p className="text-xs text-slate-400 mb-1">Destino más repetido</p>
+              <p className="text-2xl font-semibold text-slate-800">{destinoMasRepetido}</p>
+              <p className="text-xs text-slate-300 mt-1">{contadorDestinos[destinoMasRepetido] ?? 0} vuelos</p>
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-100 p-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-400 rounded-t-xl" />
+              <p className="text-xs text-slate-400 mb-1">Más caro</p>
+              <p className="text-2xl font-semibold text-red-500">
+                {vueloMasCaro ? `${vueloMasCaro.precio}€` : "-"}
+              </p>
+              <p className="text-xs text-slate-300 mt-1">
+                {vueloMasCaro ? `${vueloMasCaro.origen} → ${vueloMasCaro.destino}` : ""}
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-100 p-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-green-500 rounded-t-xl" />
+              <p className="text-xs text-slate-400 mb-1">Más barato</p>
+              <p className="text-2xl font-semibold text-green-500">
+                {vueloMasBarato ? `${vueloMasBarato.precio}€` : "-"}
+              </p>
+              <p className="text-xs text-slate-300 mt-1">
+                {vueloMasBarato ? `${vueloMasBarato.origen} → ${vueloMasBarato.destino}` : ""}
+              </p>
+            </div>
+          </div>
+
+          {/* Gráficas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            {/* Top destinos (barras horizontales) */}
+            <div className="bg-white rounded-xl border border-slate-100 p-4">
+              <p className="text-xs font-medium text-slate-400 mb-4">Top destinos</p>
+              <div className="space-y-3">
+                {destinosOrdenados.slice(0, 5).map(([dest, cnt], i) => {
+                  const colors = ['bg-blue-500', 'bg-amber-400', 'bg-green-500', 'bg-red-400', 'bg-purple-400'];
+                  return (
+                    <div key={dest} className="flex items-center gap-3">
+                      <span className="text-xs text-slate-500 w-12 truncate font-medium">{dest}</span>
+                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${colors[i % colors.length]} transition-all duration-700`}
+                          style={{ width: `${(cnt / maxCount) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 w-4 text-right">{cnt}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Histograma de precios */}
+            <div className="bg-white rounded-xl border border-slate-100 p-4">
+              <p className="text-xs font-medium text-slate-400 mb-2">Distribución de precios</p>
+              <PreciosHistograma vuelos={vuelos} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🔒 SECCIONES SOLO PARA ADMIN */}
       {perfil?.rol === "admin" && (
