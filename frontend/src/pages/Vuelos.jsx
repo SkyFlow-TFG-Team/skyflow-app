@@ -52,23 +52,21 @@ const Vuelos = () => {
     }
   };
 
-  // 3. Función para reservar (Solo Cliente)
+  // 3. Función para reservar (Misión "Reserva de Vuelos")
   const reservarVuelo = async (vueloId) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Debes iniciar sesión para reservar");
-      return;
-    }
-
     try {
-      await api.post("/reservas", 
-        { vuelo_id: vueloId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("✈️ Reserva realizada con éxito");
+      const response = await api.post('/reservas/', { 
+        vuelo_id: vueloId 
+      });
+      
+      if (response.data) {
+        alert("✈️ ¡Reserva realizada! El sistema ha actualizado las plazas.");
+        await cargarVuelos(); 
+      }
     } catch (err) {
-      console.error(err);
-      alert("Error al reservar");
+      console.error("Error en la reserva:", err);
+      const msg = err.response?.data?.detail || "Error al conectar con el servidor de reservas";
+      alert(`❌${msg}`);
     }
   };
 
@@ -111,7 +109,6 @@ const Vuelos = () => {
         <p className="text-slate-500 mt-2">Gestión y monitorización de flota en tiempo real</p>
       </header>
 
-      {/* 🔒 SECCIONES SOLO PARA ADMIN */}
       {perfil?.rol === "admin" && (
         <div className="space-y-12 mb-12">
           <section className="border-b-2 border-slate-200 pb-8">
@@ -130,13 +127,11 @@ const Vuelos = () => {
         </div>
       )}
 
-      {/* SECCIÓN LISTA Y BUSCADOR (Visible para todos) */}
       <section>
         <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
           <span>🛫</span> Vuelos Activos
         </h2>
 
-        {/* BARRA DE BÚSQUEDA */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full">
             <label className="block text-xs font-bold text-gray-500 uppercase">Origen</label>
@@ -188,8 +183,6 @@ const Vuelos = () => {
               <div key={vuelo.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 hover:shadow-xl transition-all">
                 <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
                   <span className="font-mono font-bold text-xs uppercase text-slate-400">ID: {vuelo.id.slice(0, 8)}</span>
-                  
-                  {/* 🔒 BOTÓN BORRAR SOLO ADMIN */}
                   {perfil?.rol === "admin" && (
                     <button
                       onClick={() => eliminarVuelos(vuelo.id)}
@@ -213,23 +206,36 @@ const Vuelos = () => {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Aerolínea</p>
-                      <p className="text-slate-700 font-semibold italic">{vuelo.aerolineas?.nombre || "Desconocida"}</p>
+                  <div className="pt-4 border-t border-slate-50 space-y-3">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-[10px] text-slate-400 uppercase font-bold">Aerolínea</p>
+                        <p className="text-slate-700 font-semibold italic">{vuelo.aerolineas?.nombre || "Desconocida"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-black text-blue-600">{vuelo.precio}€</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-black text-blue-600">{vuelo.precio}€</p>
+
+                    <div className="flex justify-between items-center bg-slate-50 p-2 rounded-lg">
+                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Disponibilidad</p>
+                      <p className={`font-mono font-bold ${vuelo.plazas_disponibles > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {vuelo.plazas_disponibles} de {vuelo.plazas_totales}
+                      </p>
                     </div>
                   </div>
 
-                  {/* 🔒 BOTÓN RESERVAR SOLO CLIENTE */}
                   {perfil?.rol === "cliente" && (
                     <button
                       onClick={() => reservarVuelo(vuelo.id)}
-                      className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                      disabled={vuelo.plazas_disponibles <= 0}
+                      className={`mt-4 w-full py-3 rounded-xl font-bold transition-all duration-300 shadow-sm ${
+                        vuelo.plazas_disponibles > 0 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md' 
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      }`}
                     >
-                      Reservar vuelo
+                      {vuelo.plazas_disponibles > 0 ? 'Reservar vuelo' : 'Vuelo Completo'}
                     </button>
                   )}
                 </div>
