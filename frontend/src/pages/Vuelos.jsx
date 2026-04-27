@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react';
 import api from '../api/api';
-import FormularioVuelo from '../components/FormularioVuelo';
-import FormularioAerolinea from '../components/FormularioAerolinea'; 
+import FormularioVuelo from '../components/FormularioVuelo'; 
+import FormularioAerolinea from '../components/FormularioAerolinea';
+import { supabase } from "../supabaseClient";
 
 const Vuelos = () => {
   const [vuelos, setVuelos] = useState([]);
+  const [perfil, setPerfil] = useState(null);
   const [cargando, setCargando] = useState(true);
   
   // Estados para el buscador
   const [filtroOrigen, setFiltroOrigen] = useState('');
   const [filtroDestino, setFiltroDestino] = useState('');
 
-  // Función principal para cargar y filtrar vuelos
+  // 1. Función para cargar vuelos (con filtros)
   const cargarVuelos = async (origenOverride, destinoOverride) => {
     try {
-      // Usamos el valor pasado por argumento o el del estado del input
       const origenFinal = origenOverride !== undefined ? origenOverride : filtroOrigen;
       const destinoFinal = destinoOverride !== undefined ? destinoOverride : filtroDestino;
 
-      const res = await api.get('/vuelos', {
+      const res = await api.get('/vuelos/', {
         params: {
           origen: origenFinal || undefined,
           destino: destinoFinal || undefined
@@ -28,12 +29,18 @@ const Vuelos = () => {
       setVuelos(res.data);
       setCargando(false);
     } catch (err) {
-      console.error("Error al conectar con la torre de control:", err);
+      console.error("Error al cargar vuelos:", err);
       setCargando(false);
     }
   };
 
+  // 2. Función para eliminar (Solo Admin)
   const eliminarVuelos = async (id) => {
+    if (perfil?.rol !== "admin") {
+      alert("No tienes permisos para realizar esta acción");
+      return;
+    }
+
     if (window.confirm("¿Seguro que quieres eliminar este vuelo?")) {
       try {
         await api.delete(`/vuelos/${id}`);
@@ -45,9 +52,46 @@ const Vuelos = () => {
     }
   };
 
+  // 3. Función para reservar (Solo Cliente)
+  const reservarVuelo = async (vueloId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Debes iniciar sesión para reservar");
+      return;
+    }
+
+    try {
+      await api.post("/reservas", 
+        { vuelo_id: vueloId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("✈️ Reserva realizada con éxito");
+    } catch (err) {
+      console.error(err);
+      alert("Error al reservar");
+    }
+  };
+
+  // 4. Inicialización de datos y perfil
   useEffect(() => {
-    cargarVuelos();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    let montado = true;
+
+    const inicializar = async () => {
+      await cargarVuelos();
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && montado) {
+        const { data } = await supabase
+          .from("perfiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        setPerfil(data);
+      }
+    };
+
+    inicializar();
+    return () => { montado = false; };
   }, []);
 
   if (cargando) {
@@ -67,23 +111,26 @@ const Vuelos = () => {
         <p className="text-slate-500 mt-2">Gestión y monitorización de flota en tiempo real</p>
       </header>
 
-      {/* SECCIÓN REGISTRAR AEROLÍNEA */}
-      <section className="mb-8 border-b-2 border-slate-200 pb-8">
-        <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
-          <span>🏢</span> Registrar Nueva Aerolínea
-        </h2>
-        <FormularioAerolinea />
-      </section>
+      {/* 🔒 SECCIONES SOLO PARA ADMIN */}
+      {perfil?.rol === "admin" && (
+        <div className="space-y-12 mb-12">
+          <section className="border-b-2 border-slate-200 pb-8">
+            <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+              <span>🏢</span> Registrar Nueva Aerolínea
+            </h2>
+            <FormularioAerolinea />
+          </section>
 
-      {/* SECCIÓN REGISTRAR VUELO */}
-      <section className="mb-12">
-        <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
-          <span>➕</span> Registrar Nuevo Vuelo
-        </h2>
-        <FormularioVuelo onVueloCreado={() => cargarVuelos()} />
-      </section>
+          <section>
+            <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+              <span>➕</span> Registrar Nuevo Vuelo
+            </h2>
+            <FormularioVuelo onVueloCreado={() => cargarVuelos()} />
+          </section>
+        </div>
+      )}
 
-      {/* SECCIÓN LISTA Y BUSCADOR */}
+      {/* SECCIÓN LISTA Y BUSCADOR (Visible para todos) */}
       <section>
         <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
           <span>🛫</span> Vuelos Activos
@@ -91,8 +138,8 @@ const Vuelos = () => {
 
         {/* BARRA DE BÚSQUEDA */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-500 uppercase">Buscar Origen</label>
+          <div className="flex-1 w-full">
+            <label className="block text-xs font-bold text-gray-500 uppercase">Origen</label>
             <input 
               type="text" 
               placeholder="Ej. Madrid" 
@@ -101,8 +148,8 @@ const Vuelos = () => {
               className="w-full border rounded-md p-2 mt-1 focus:ring-2 focus:ring-blue-500 outline-none" 
             />
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-500 uppercase">Buscar Destino</label>
+          <div className="flex-1 w-full">
+            <label className="block text-xs font-bold text-gray-500 uppercase">Destino</label>
             <input 
               type="text" 
               placeholder="Ej. Paris" 
@@ -111,22 +158,24 @@ const Vuelos = () => {
               className="w-full border rounded-md p-2 mt-1 focus:ring-2 focus:ring-blue-500 outline-none" 
             />
           </div>
-          <button 
-            onClick={() => cargarVuelos()}
-            className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700 transition-all shadow-sm h-[42px]"
-          >
-            🔍 Buscar
-          </button>
-          <button 
-            onClick={() => {
-              setFiltroOrigen('');
-              setFiltroDestino('');
-              cargarVuelos('', ''); 
-            }}
-            className="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-md hover:bg-slate-300 transition-all h-[42px]"
-          >
-            Limpiar
-          </button>
+          <div className="flex gap-2 w-full md:w-auto">
+            <button 
+              onClick={() => cargarVuelos()}
+              className="flex-1 bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700 transition-all h-[42px]"
+            >
+              🔍 Buscar
+            </button>
+            <button 
+              onClick={() => {
+                setFiltroOrigen('');
+                setFiltroDestino('');
+                cargarVuelos('', ''); 
+              }}
+              className="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-md hover:bg-slate-300 transition-all h-[42px]"
+            >
+              Limpiar
+            </button>
+          </div>
         </div>
         
         {vuelos.length === 0 ? (
@@ -136,42 +185,53 @@ const Vuelos = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vuelos.map((vuelo) => (
-              <div 
-                key={vuelo.id} 
-                className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 hover:shadow-xl transition-all duration-300"
-              >
+              <div key={vuelo.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 hover:shadow-xl transition-all">
                 <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
-                  <span className="font-mono font-bold">ID: {vuelo.id.slice(0, 8)}</span>
-                  <button
-                    onClick={() => eliminarVuelos(vuelo.id)}
-                    className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 font-bold"
-                  >
-                    Borrar
-                  </button>
+                  <span className="font-mono font-bold text-xs uppercase text-slate-400">ID: {vuelo.id.slice(0, 8)}</span>
+                  
+                  {/* 🔒 BOTÓN BORRAR SOLO ADMIN */}
+                  {perfil?.rol === "admin" && (
+                    <button
+                      onClick={() => eliminarVuelos(vuelo.id)}
+                      className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full hover:bg-red-500 hover:text-white transition-colors font-bold uppercase"
+                    >
+                      Borrar
+                    </button>
+                  )}
                 </div>
                 
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-6">
                     <div className="text-center">
                       <p className="text-2xl font-black text-slate-800">{vuelo.origen}</p>
-                      <p className="text-[10px] text-slate-400 uppercase">Origen</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">Origen</p>
                     </div>
                     <span className="text-2xl">✈️</span>
                     <div className="text-center">
                       <p className="text-2xl font-black text-slate-800">{vuelo.destino}</p>
-                      <p className="text-[10px] text-slate-400 uppercase">Destino</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">Destino</p>
                     </div>
                   </div>
 
                   <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-bold">Aerolínea</p>
-                      <p className="text-slate-700 font-semibold">{vuelo.aerolineas?.nombre || "N/A"}</p>
+                      <p className="text-slate-700 font-semibold italic">{vuelo.aerolineas?.nombre || "Desconocida"}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black text-blue-600">{vuelo.precio}€</p>
                     </div>
                   </div>
+
+                  {/* 🔒 BOTÓN RESERVAR SOLO CLIENTE */}
+                  {perfil?.rol === "cliente" && (
+                    <button
+                      onClick={() => reservarVuelo(vuelo.id)}
+                      className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                    >
+                      Reservar vuelo
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

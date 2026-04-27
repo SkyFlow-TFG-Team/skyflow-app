@@ -74,7 +74,7 @@ const FormularioVuelo = ({ onVueloCreado }) => {
         <label className="block text-xs font-bold text-gray-500 uppercase">Precio</label>
         <input type="number" value={nuevoVuelo.precio} onChange={(e) => setNuevoVuelo({...nuevoVuelo, precio: e.target.value})} className="w-full border rounded-md p-2 mt-1" required />
       </div>
-      <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition-all shadow-sm h-[42px]">
+      <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition-all shadow-sm h-10-5px">
         Registrar
       </button>
     </form>
