@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from "./components/Header";
-import Vuelos from "./pages/vuelos";
+import Vuelos from "./pages/Vuelos";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
+import AssignedFlights from "./pages/AssignedFligths"
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -12,11 +14,50 @@ function App() {
       <Header />
       <div className="container mx-auto p-4">
         <Routes>
-          <Route path="/" element={<Vuelos />} />
+
+          {/* 🔓 Público */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
+
+          {/* 🔐 Usuario logueado */}
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/my-bookings" 
+            element={
+              <ProtectedRoute>
+                <MyBookings />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* 🧑‍✈️ SOLO EMPLEADO */}
+          <Route 
+            path="/assigned-flights" 
+            element={
+              <ProtectedRoute requiredRole="empleado">
+                <AssignedFlights />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* 🛠️ TODOS LOS USUARIOS LOGUEADOS */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Vuelos />
+              </ProtectedRoute>
+            } 
+          />
+
         </Routes>
       </div>
     </Router>

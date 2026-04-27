@@ -19,6 +19,9 @@ export default function Profile() {
 
         setProfile(perfilRes.data);
 
+        // ✅ IMPORTANTE: guardar perfil para roles
+        localStorage.setItem("perfil", JSON.stringify(perfilRes.data));
+
         // 🔹 Reservas
         const reservasRes = await api.get("/reservas/mis-reservas", {
           headers: { Authorization: `Bearer ${token}` }

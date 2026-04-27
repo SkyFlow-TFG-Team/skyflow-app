@@ -77,42 +77,59 @@ const Header = () => {
 
             {menuAbierto && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-xl z-50 py-2 text-left">
-                <div className="px-4 py-2 border-b bg-slate-50">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">{perfil?.rol || 'Usuario'}</p>
-                </div>
+  <div className="px-4 py-2 border-b bg-slate-50">
+    <p className="text-[10px] text-slate-400 font-bold uppercase">
+      {perfil?.rol || 'Usuario'}
+    </p>
+  </div>
 
-                {/* 🔵 NUEVOS BOTONES AÑADIDOS */}
-                <button 
-                  onClick={() => { navigate("/profile"); setMenuAbierto(false); }} 
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                >
-                  My Profile
-                </button>
+  {/* ✅ 1. Accesible para TODOS los usuarios logueados */}
+  <button 
+    onClick={() => { navigate("/profile"); setMenuAbierto(false); }} 
+    className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+  >
+    Mi Perfil
+  </button>
 
-                <button 
-                  onClick={() => { navigate("/my-bookings"); setMenuAbierto(false); }} 
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                >
-                  My Bookings
-                </button>
-                {/* 🔵 FIN DE LO AÑADIDO */}
+  <button 
+    onClick={() => { navigate("/my-bookings"); setMenuAbierto(false); }} 
+    className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+  >
+    Mis Reservas
+  </button>
 
-                <button 
-                  onClick={() => { navigate("/"); setMenuAbierto(false); }} 
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                >
-                  Panel Control
-                </button>
+  {/* ✅ 2. Solo para EMPLEADOS y ADMINS */}
+  {(perfil?.rol === 'empleado' || perfil?.rol === 'admin') && (
+    <button 
+      onClick={() => { navigate("/assigned-flights"); setMenuAbierto(false); }} 
+      className="w-full text-left px-4 py-2 text-sm text-blue-600 font-semibold hover:bg-blue-50"
+    >
+      ✈️ Vuelos Asignados
+    </button>
+  )}
 
-                <hr className="my-1" />
+  {/* ✅ 3. Solo para ADMINS (Panel de Control) */}
+  {perfil?.rol === 'admin' && (
+    <>
+      <hr className="my-1" />
+      <button 
+        onClick={() => { navigate("/"); setMenuAbierto(false); }} 
+        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+      >
+        ⚙️ Panel Control
+      </button>
+    </>
+  )}
 
-                <button 
-                  onClick={handleLogout} 
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 font-bold hover:bg-red-50"
-                >
-                  Cerrar sesión
-                </button>
-              </div>
+  <hr className="my-1" />
+
+  <button 
+    onClick={handleLogout} 
+    className="w-full text-left px-4 py-2 text-sm text-red-600 font-bold hover:bg-red-50"
+  >
+    Cerrar sesión
+  </button>
+</div>
             )}
           </div>
         )}
