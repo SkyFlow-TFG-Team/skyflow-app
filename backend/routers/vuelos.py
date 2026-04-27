@@ -19,21 +19,35 @@ class VueloCreate(BaseModel):
     fecha_salida: str
 
 @router.get("/")
-def obtener_vuelos():
+def obtener_vuelos(origen: str = None, destino: str = None):
     try:
-        data = supabase.table("vuelos").select("*, aerolineas(nombre)").execute()
+        # 1. Iniciamos la consulta base con el join a aerolíneas
+        query = supabase.table("vuelos").select("*, aerolineas(nombre)")
+
+        # 2. Aplicamos filtros dinámicos si existen (Tarea 2 y 3 de la Misión B)
+        # Usamos .ilike para que no importe mayúsculas/minúsculas
+        if origen:
+            query = query.ilike("origen", f"%{origen}%")
+        
+        if destino:
+            query = query.ilike("destino", f"%{destino}%")
+
+        # 3. Ordenamos (eliminado 'ascending' para evitar el error 500)
+        # Supabase ordena de forma ascendente por defecto
+        data = query.order("fecha_salida").execute()
+        
         return data.data
     except Exception as e:
+        print(f"Error en el buscador: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/")
 def crear_vuelo(vuelo: VueloCreate):
     try:
-        # Insertamos los datos tal cual vienen en tu tabla de la imagen
+        # Insertamos los datos usando model_dump()
         response = supabase.table("vuelos").insert(vuelo.model_dump()).execute()
         return {"mensaje": "Vuelo creado con éxito", "dato": response.data}
     except Exception as e:
-        # Esto nos ayudará a ver el error real si Supabase rechaza algo
         print(f"Error Supabase: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -43,4 +57,5 @@ def borrar_vuelo(vuelo_id: str):
         response = supabase.table("vuelos").delete().eq("id", vuelo_id).execute()
         return {"mensaje": "Vuelo borrado con éxito", "dato": response.data}
     except Exception as e:
+        print(f"Error al borrar: {e}")
         raise HTTPException(status_code=500, detail=str(e))
