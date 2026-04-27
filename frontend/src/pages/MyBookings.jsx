@@ -37,24 +37,36 @@ export default function MyBookings() {
     loadBookings();
   }, []);
 
-  // 🔹 Cancelar reserva
   const cancelarReserva = async (id) => {
     const token = localStorage.getItem("token");
 
     if (!window.confirm("¿Seguro que quieres cancelar esta reserva?")) return;
 
     try {
+      // Usamos las backticks `` para que la variable ${id} se inserte correctamente en la URL
       await api.delete(`/reservas/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       alert("Reserva cancelada correctamente");
 
-      // Actualizamos lista sin recargar
+      // Actualizamos la lista local eliminando la reserva cancelada
       setBookings(prev => prev.filter(r => r.id !== id));
 
-    } catch (err) {
-      alert(err.response?.data?.detail || "Error al cancelar");
+      } catch (err) {
+      // Registramos el error completo en la consola para depuración técnica (F12)
+      console.error("Error al cancelar la reserva:", err.response?.data || err);
+
+      // Extraemos el detalle del error que envía el backend (FastAPI)
+      const mensajeError = err.response?.data?.detail;
+
+      // Si el backend nos mandó un texto de error, lo mostramos. 
+      // Si no (o si es un error 500 feo), mostramos un mensaje genérico.
+      if (typeof mensajeError === "string") {
+        alert(mensajeError);
+      } else {
+        alert("No se pudo cancelar la reserva. Por favor, inténtalo de nuevo más tarde.");
+      }
     }
   };
 
