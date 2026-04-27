@@ -1,127 +1,101 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
 import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
-from pydantic import BaseModel
-from datetime import datetime, timedelta, timezone # Importamos timezone
+from datetime import datetime, timezone
 
 load_dotenv()
-
-supabase: Client = create_client(
-    os.environ.get("SUPABASE_URL"),
-    os.environ.get("SUPABASE_KEY")
-)
+supabase: Client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
 
 router = APIRouter(prefix="/reservas", tags=["reservas"])
 
-# --- AUTENTICACIÓN ---
-def get_current_user(authorization: str = Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Token requerido")
-    token = authorization.replace("Bearer ", "")
-    try:
-        user = supabase.auth.get_user(token)
-        if not user or not user.user:
-            raise HTTPException(status_code=401, detail="Token inválido")
-        return user.user
-    except Exception:
-        raise HTTPException(status_code=401, detail="Sesión expirada o inválida")
-
-# --- OBTENER MIS RESERVAS ---
-@router.get("/mis-reservas")
-def obtener_reservas(user=Depends(get_current_user)):
-    try:
-        response = supabase.table("reservas") \
-            .select("*, vuelos(origen, destino, fecha_salida, precio)") \
-            .eq("cliente_id", user.id) \
-            .execute()
-        return response.data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# --- CREAR RESERVA (Tu Misión Completa) ---
-class ReservaCreate(BaseModel):
+class ReservaSchema(BaseModel):
     vuelo_id: str
 
+# --- 1. CREAR RESERVA (Tu código actual) ---
 @router.post("/")
-def crear_reserva(reserva: ReservaCreate, user=Depends(get_current_user)):
+async def crear_reserva(reserva: ReservaSchema, request: Request):
     try:
-        # 1. Verificar disponibilidad de plazas
-        vuelo_resp = supabase.table("vuelos").select("plazas_disponibles").eq("id", reserva.vuelo_id).single().execute()
-        vuelo = vuelo_resp.data
+        auth_header = request.headers.get("Authorization")
+        token = auth_header.split(" ")[1]
+        user_res = supabase.auth.get_user(token)
+        if not user_res.user: raise HTTPException(status_code=401, detail="Sesión no válida")
         
-        if not vuelo:
-            raise HTTPException(status_code=404, detail="Vuelo no encontrado")
-        
-        if vuelo["plazas_disponibles"] <= 0:
-            raise HTTPException(status_code=400, detail="No quedan plazas disponibles en este vuelo")
+        cliente_id = user_res.user.id
 
-        # 2. Crear la reserva
-        nueva_reserva = {
-            "cliente_id": user.id,
-            "vuelo_id": reserva.vuelo_id,
-            "fecha_reserva": datetime.now(timezone.utc).isoformat(), # Usar timezone-aware
-            "estado": "confirmada"
-        }
-        res_ins = supabase.table("reservas").insert(nueva_reserva).execute()
+        vuelo = supabase.table("vuelos").select("plazas_disponibles").eq("id", reserva.vuelo_id).single().execute()
+        if not vuelo.data or vuelo.data["plazas_disponibles"] <= 0:
+            raise HTTPException(status_code=400, detail="No quedan plazas disponibles")
 
-        # 3. Restar plaza del vuelo
-        supabase.table("vuelos").update({
-            "plazas_disponibles": vuelo["plazas_disponibles"] - 1
-        }).eq("id", reserva.vuelo_id).execute()
+        nueva_reserva = {"cliente_id": cliente_id, "vuelo_id": reserva.vuelo_id, "estado": "confirmada"}
+        res_insert = supabase.table("reservas").insert(nueva_reserva).execute()
 
-        return {"mensaje": "Reserva creada con éxito", "data": res_ins.data}
+        nueva_cantidad = vuelo.data["plazas_disponibles"] - 1
+        supabase.table("vuelos").update({"plazas_disponibles": nueva_cantidad}).eq("id", reserva.vuelo_id).execute()
 
-    except HTTPException as he: raise he
+        return {"mensaje": "Reserva realizada", "dato": res_insert.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- CANCELAR RESERVA (Arreglo de Fechas + Devolución de Plaza) ---
-@router.delete("/{reserva_id}")
-def cancelar_reserva(reserva_id: str, user=Depends(get_current_user)):
+# --- 2. OBTENER MIS RESERVAS (Lo que faltaba para conectar con el Front) ---
+@router.get("/mis-reservas")
+async def obtener_mis_reservas(request: Request):
     try:
-        # 1. Obtener la reserva con sus vuelos usando .single()
-        # Nota: Asegúrate de que el select es exactamente así para traer los datos anidados
-        query = supabase.table("reservas").select("*, vuelos(*)").eq("id", reserva_id).single().execute();
-        reserva = query.data
-
-        if not reserva:
+        auth_header = request.headers.get("Authorization")
+        token = auth_header.split(" ")[1]
+        user_res = supabase.auth.get_user(token)
+        
+        # CAMBIO AQUÍ: Usamos una consulta más explícita
+        # Si tu tabla de vuelos tiene otro nombre (ej. 'Vuelos'), cámbialo aquí
+        res = supabase.table("reservas")\
+            .select("id, estado, cliente_id, vuelo_id, vuelos(*)")\
+            .eq("cliente_id", user_res.user.id)\
+            .execute()
+        
+        print("Datos recibidos de DB:", res.data) # Esto te ayudará a ver en la consola si 'vuelos' viene con datos
+        return res.data
+    except Exception as e:
+        print(f"Error en Backend: {e}")
+        raise HTTPException(status_code=500, detail="Error al obtener tus reservas")
+    
+# --- 3. CANCELAR RESERVA (Con devolución de plaza) ---
+@router.delete("/{reserva_id}")
+async def cancelar_reserva(reserva_id: str, request: Request):
+    try:
+        # 1. Obtener la reserva para saber qué vuelo es y su fecha
+        reserva = supabase.table("reservas").select("vuelo_id, vuelos(fecha_salida)").eq("id", reserva_id).single().execute()
+        if not reserva.data: 
             raise HTTPException(status_code=404, detail="Reserva no encontrada")
 
-        if reserva.get("cliente_id") != user.id:
-            raise HTTPException(status_code=403, detail="No tienes permiso para cancelar esta reserva")
-
-        vuelo_data = reserva.get("vuelos")
-        if not vuelo_data:
-            raise HTTPException(status_code=404, detail="Datos del vuelo no encontrados")
-
-        # 2. Control de Fechas (UTC)
-        fecha_str = vuelo_data.get("fecha_salida")
-        if fecha_str.endswith("Z"):
-            fecha_str = fecha_str.replace("Z", "+00:00")
+        # 2. Verificar regla de 72h con fechas comparables (ambas con zona horaria UTC)
+        # Convertimos la fecha del vuelo y le añadimos UTC
+        fecha_vuelo = datetime.fromisoformat(reserva.data["vuelos"]["fecha_salida"].replace('Z', '+00:00'))
         
-        fecha_vuelo = datetime.fromisoformat(fecha_str)
+        # Obtenemos la hora actual con zona horaria UTC
         ahora = datetime.now(timezone.utc)
 
-        if (fecha_vuelo - ahora) < timedelta(hours=72):
-            raise HTTPException(status_code=400, detail="Faltan menos de 72h. No se puede cancelar.")
-
-        # 3. Devolver plaza y eliminar (Orden seguro)
-        plazas_actuales = vuelo_data.get("plazas_disponibles", 0)
+        diff_segundos = (fecha_vuelo - ahora).total_seconds()
         
-        # Primero sumamos la plaza
-        supabase.table("vuelos").update({
-            "plazas_disponibles": plazas_actuales + 1
-        }).eq("id", reserva.get("vuelo_id")).execute()
+        if diff_segundos < 72 * 3600:
+            raise HTTPException(status_code=400, detail="No se puede cancelar con menos de 72h de antelación")
 
-        # Luego borramos la reserva
+        # 3. Proceder al borrado y devolución de plaza
+        vuelo_id = reserva.data["vuelo_id"]
+        
+        # Borrar reserva
         supabase.table("reservas").delete().eq("id", reserva_id).execute()
+        
+        # Devolver plaza al vuelo
+        vuelo_actual = supabase.table("vuelos").select("plazas_disponibles").eq("id", vuelo_id).single().execute()
+        nueva_cantidad = vuelo_actual.data["plazas_disponibles"] + 1
+        supabase.table("vuelos").update({"plazas_disponibles": nueva_cantidad}).eq("id", vuelo_id).execute()
 
-        return {"mensaje": "Reserva cancelada correctamente"}
+        return {"mensaje": "Reserva cancelada correctamente y plaza devuelta"}
 
-    except HTTPException as he:
-        # Re-lanzamos las excepciones controladas para que lleguen al front
-        raise he
     except Exception as e:
-        print(f"Error crítico: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor al procesar la cancelación")
+        print(f"Error al cancelar: {e}")
+        # Si el error ya es una HTTPException, la relanzamos tal cual
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Error interno al procesar la cancelación")
