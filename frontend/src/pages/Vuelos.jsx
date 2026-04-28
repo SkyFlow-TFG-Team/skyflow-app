@@ -4,7 +4,7 @@ import FormularioVuelo from '../components/FormularioVuelo';
 import FormularioAerolinea from '../components/FormularioAerolinea';
 import { supabase } from "../supabaseClient";
 
-// Histograma de precios con CSS puro
+// Histograma de precios con CSS puro (Tarea 3 a salvo)
 const PreciosHistograma = ({ vuelos }) => {
   const precios = vuelos.map(v => v.precio).sort((a, b) => a - b);
   if (!precios.length) return <p className="text-xs text-slate-300">Sin datos</p>;
@@ -52,16 +52,9 @@ const Vuelos = () => {
 
   const destinosOrdenados = Object.entries(contadorDestinos).sort((a, b) => b[1] - a[1]);
   const maxCount = destinosOrdenados[0]?.[1] || 1;
-
   const destinoMasRepetido = vuelos.length > 0 ? destinosOrdenados[0][0] : "-";
-
-  const vueloMasCaro = vuelos.reduce((max, v) => 
-    v.precio > (max?.precio || 0) ? v : max, null
-  );
-
-  const vueloMasBarato = vuelos.reduce((min, v) => 
-    v.precio < (min?.precio || Infinity) ? v : min, null
-  );
+  const vueloMasCaro = vuelos.reduce((max, v) => v.precio > (max?.precio || 0) ? v : max, null);
+  const vueloMasBarato = vuelos.reduce((min, v) => v.precio < (min?.precio || Infinity) ? v : min, null);
 
   const cargarVuelos = async (origenOverride, destinoOverride) => {
     try {
@@ -99,19 +92,6 @@ const Vuelos = () => {
     }
   };
 
-  const reservarVuelo = async (vueloId) => {
-    try {
-      const response = await api.post('/reservas/', { vuelo_id: vueloId });
-      if (response.data) {
-        alert("✈️ ¡Reserva realizada!");
-        await cargarVuelos(); 
-      }
-    } catch (err) {
-      const msg = err.response?.data?.detail || "Error al reservar";
-      alert(`❌ ${msg}`);
-    }
-  };
-
   useEffect(() => {
     let montado = true;
     const inicializar = async () => {
@@ -124,6 +104,7 @@ const Vuelos = () => {
     };
     inicializar();
     return () => { montado = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (cargando) {
@@ -208,10 +189,10 @@ const Vuelos = () => {
 
       <section>
         <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
-          <span>🛫</span> Vuelos Activos
+          <span>🛫</span> Gestión de Flota (Solo Admin)
         </h2>
 
-        {/* BUSCADOR */}
+        {/* BUSCADOR ADMIN */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full">
             <label className="block text-xs font-bold text-gray-500 uppercase">Origen</label>
@@ -227,14 +208,14 @@ const Vuelos = () => {
           </div>
         </div>
         
-        {/* LISTADO DE TARJETAS */}
+        {/* LISTADO DE TARJETAS (Solo borrar, sin reservar) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {vuelos.map((vuelo) => (
             <div key={vuelo.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 hover:shadow-xl transition-all">
               <div className="bg-slate-800 p-4 text-white flex justify-between items-center">
                 <span className="font-mono font-bold text-xs uppercase text-slate-400">ID: {vuelo.id.slice(0, 8)}</span>
                 {perfil?.rol === "admin" && (
-                  <button onClick={() => eliminarVuelos(vuelo.id)} className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full uppercase font-bold">Borrar</button>
+                  <button onClick={() => eliminarVuelos(vuelo.id)} className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-1 rounded-full uppercase font-bold hover:bg-red-500 hover:text-white transition-colors">Borrar</button>
                 )}
               </div>
               <div className="p-6">
@@ -266,19 +247,6 @@ const Vuelos = () => {
                     </p>
                   </div>
                 </div>
-                {perfil?.rol === "cliente" && (
-                  <button
-                    onClick={() => reservarVuelo(vuelo.id)}
-                    disabled={vuelo.plazas_disponibles <= 0}
-                    className={`mt-4 w-full py-3 rounded-xl font-bold transition-all duration-300 shadow-sm ${
-                      vuelo.plazas_disponibles > 0 
-                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {vuelo.plazas_disponibles > 0 ? 'Reservar vuelo' : 'Vuelo Completo'}
-                  </button>
-                )}
               </div>
             </div>
           ))}

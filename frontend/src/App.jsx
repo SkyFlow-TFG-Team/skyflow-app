@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from "./components/Header";
+import Home from "./pages/Home";
 import Vuelos from "./pages/Vuelos";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -16,6 +17,7 @@ function App() {
         <Routes>
 
           {/* 🔓 Público */}
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -48,9 +50,9 @@ function App() {
             } 
           />
 
-          {/* 🛠️ TODOS LOS USUARIOS LOGUEADOS */}
+          {/* 🛠️ PANEL DE ADMINISTRACIÓN (Mesa limpia) */}
           <Route 
-            path="/" 
+            path="/admin-vuelos" 
             element={
               <ProtectedRoute>
                 <Vuelos />
