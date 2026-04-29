@@ -58,7 +58,7 @@ function App() {
 
           {/* 🧑‍✈️ SOLO EMPLEADO */}
           <Route 
-            path="/assigned-flights" 
+            path="/assigned_flights" 
             element={
               <ProtectedRoute requiredRole="empleado">
                 <AssignedFlights />

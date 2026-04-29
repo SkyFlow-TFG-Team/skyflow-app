@@ -13,7 +13,7 @@ export default function AssignedFlights() {
 
       const { data, error } = await supabase
         .from("asignaciones_empleados")
-        .select(", vuelos(, aerolineas(nombre))")
+        .select("*, vuelos(*, aerolineas(nombre))")
         .eq("empleado_id", user.id);
 
       if (error) {
