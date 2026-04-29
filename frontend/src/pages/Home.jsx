@@ -29,7 +29,6 @@ const Home = () => {
     }
   };
 
-  // La función de reserva real extraída para los clientes
   const reservarVuelo = async (vueloId) => {
     if (!perfil) {
       alert("Debes iniciar sesión para reservar un vuelo.");
@@ -59,7 +58,6 @@ const Home = () => {
     };
     inicializar();
     return () => { montado = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (cargando) {
@@ -127,7 +125,7 @@ const Home = () => {
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center mb-4">
-                     <div>
+                    <div>
                       <p className="text-[10px] text-slate-400 uppercase font-bold">Fecha de salida</p>
                       <p className="text-sm text-slate-700 font-semibold">{new Date(vuelo.fecha_salida).toLocaleString()}</p>
                     </div>
@@ -136,9 +134,24 @@ const Home = () => {
                       <p className="text-sm text-slate-700 font-semibold">{vuelo.aerolineas?.nombre || "N/A"}</p>
                     </div>
                   </div>
+
+                  {/* 📊 CONTADOR DE DISPONIBILIDAD PARA EL CLIENTE */}
+                  <div className="flex justify-between items-center px-1 mb-2">
+                    <p className="text-[11px] text-slate-500 font-bold uppercase">Plazas libres</p>
+                    <p className={`text-sm font-mono font-bold ${vuelo.plazas_disponibles > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {vuelo.plazas_disponibles} <span className="text-slate-300 font-normal">/ {vuelo.plazas_totales}</span>
+                    </p>
+                  </div>
+                  {/* Barra visual de progreso (Opcional, mejora mucho la UI) */}
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
+                    <div 
+                      className={`h-full transition-all duration-500 ${vuelo.plazas_disponibles > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                      style={{ width: `${(vuelo.plazas_disponibles / vuelo.plazas_totales) * 100}%` }}
+                    />
+                  </div>
                 </div>
 
-                {/* BOTÓN RESERVAR (Con lógica real para clientes) */}
+                {/* SECCIÓN DE PRECIO Y BOTÓN */}
                 <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-white flex-col gap-3 sm:flex-row sm:gap-0">
                   <div className="w-full sm:w-auto text-center sm:text-left">
                     <p className="text-xs text-slate-500">Precio por pasajero</p>
