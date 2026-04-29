@@ -1,14 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import Header from "./components/Header";
+import Header from "./components/layout/Header";
 import Home from "./pages/Home";
 import Vuelos from "./pages/vuelos";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
-import AssignedFlights from "./pages/AssignedFligths"
-import ProtectedRoute from "./components/ProtectedRoute";
+import AssignedFlights from "./pages/AssignedFlights"
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
