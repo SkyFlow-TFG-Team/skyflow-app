@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import api from "../api/api";
 
 export default function MyBookings() {
@@ -40,19 +41,20 @@ export default function MyBookings() {
   // 🔹 Función para cancelar la reserva
   const cancelarReserva = async (id) => {
     if (!window.confirm("¿Seguro que quieres cancelar esta reserva?")) return;
+    const toastId = toast.loading("Cancelando reserva...");
 
     try {
       // El backend ahora se encarga de borrar la reserva y sumar la plaza al vuelo
       await api.delete(`/reservas/${id}`);
       
-      alert("Reserva cancelada correctamente. Se ha liberado la plaza del vuelo.");
+      toast.success("Reserva cancelada correctamente. Se ha liberado la plaza del vuelo.", { id: toastId });
       
       // Actualizamos el estado local para que desaparezca la tarjeta
       setBookings(prev => prev.filter(r => r.id !== id));
     } catch (err) {
       console.error("Error al cancelar:", err);
       const mensajeError = err.response?.data?.detail || "No se pudo cancelar la reserva.";
-      alert(mensajeError);
+      toast.error(mensajeError, { id: toastId });
     }
   };
 

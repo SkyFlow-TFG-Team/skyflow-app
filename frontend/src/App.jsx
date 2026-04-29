@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Header from "./components/Header";
 import Home from "./pages/Home";
-import Vuelos from "./pages/Vuelos";
+import Vuelos from "./pages/vuelos";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from './pages/Profile';
@@ -11,6 +12,21 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
+    <>
+    <Toaster 
+      position="top-center"
+      toastOptions={{
+        className: 'font-sans font-medium',
+        success: {
+          duration: 4000,
+          iconTheme: { primary: '#10b981', secondary: '#fff' },
+        },
+        error: {
+          duration: 5000,
+          style: { background: '#ef4444', color: '#fff' },
+        },
+      }}
+    />
     <Router>
       <Header />
       <div className="container mx-auto p-4">
@@ -52,9 +68,9 @@ function App() {
 
           {/* 🛠️ PANEL DE ADMINISTRACIÓN (Mesa limpia) */}
           <Route 
-            path="/admin-vuelos" 
+            path="/vuelos" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="admin">
                 <Vuelos />
               </ProtectedRoute>
             } 
@@ -63,6 +79,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </>
   );
 }
 

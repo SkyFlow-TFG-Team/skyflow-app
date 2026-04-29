@@ -114,7 +114,7 @@ const Header = () => {
                   <>
                     <hr className="my-1" />
                     <button 
-                      onClick={() => { navigate("/admin-vuelos"); setMenuAbierto(false); }} 
+                      onClick={() => { navigate("/vuelos"); setMenuAbierto(false); }} 
                       className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       ⚙️ Panel Control

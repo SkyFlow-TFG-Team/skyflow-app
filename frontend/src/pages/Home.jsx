@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/api';
 import { supabase } from "../supabaseClient";
+import toast from 'react-hot-toast';
 
 const Home = () => {
   const [vuelos, setVuelos] = useState([]);
@@ -31,20 +32,26 @@ const Home = () => {
 
   const reservarVuelo = async (vueloId) => {
     if (!perfil) {
-      alert("Debes iniciar sesión para reservar un vuelo.");
-      return;
+      toast.error("Debes iniciar sesión para reservar");
+    return;
+  }
+
+  // Creamos la promesa de la reserva
+  const promesaReserva = api.post('/reservas/', { vuelo_id: vueloId });
+
+  // Mostramos el toast que reacciona a la promesa
+  toast.promise(promesaReserva, {
+    loading: 'Confirmando tu asiento con SkyFlow...',
+    success: () => {
+      cargarVuelos(); // Actualizamos las plazas en la UI
+      return '✈️ ¡Billete reservado con éxito!';
+    },
+    error: (err) => {
+      const msg = err.response?.data?.detail || "No se pudo realizar la reserva";
+      return `❌ ${msg}`;
     }
-    try {
-      const response = await api.post('/reservas/', { vuelo_id: vueloId });
-      if (response.data) {
-        alert("✈️ ¡Reserva realizada con éxito!");
-        await cargarVuelos(); 
-      }
-    } catch (err) {
-      const msg = err.response?.data?.detail || "Error al reservar";
-      alert(`❌ ${msg}`);
-    }
-  };
+  });
+};
 
   useEffect(() => {
     let montado = true;
