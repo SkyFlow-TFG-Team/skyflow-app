@@ -13,7 +13,7 @@ router = APIRouter(prefix="/reservas", tags=["reservas"])
 class ReservaSchema(BaseModel):
     vuelo_id: str
 
-# --- 1. CREAR RESERVA (Tu código actual) ---
+# --- 1. CREAR RESERVA ---
 @router.post("/")
 async def crear_reserva(reserva: ReservaSchema, request: Request):
     try:
@@ -38,7 +38,7 @@ async def crear_reserva(reserva: ReservaSchema, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- 2. OBTENER MIS RESERVAS (Lo que faltaba para conectar con el Front) ---
+# --- 2. OBTENER MIS RESERVAS ---
 @router.get("/mis-reservas")
 async def obtener_mis_reservas(request: Request):
     try:
@@ -46,20 +46,19 @@ async def obtener_mis_reservas(request: Request):
         token = auth_header.split(" ")[1]
         user_res = supabase.auth.get_user(token)
         
-        # CAMBIO AQUÍ: Usamos una consulta más explícita
-        # Si tu tabla de vuelos tiene otro nombre (ej. 'Vuelos'), cámbialo aquí
+        # 🔹 CAMBIO AQUÍ: Añadimos aerolineas(*) dentro de vuelos para hacer el JOIN completo
         res = supabase.table("reservas")\
-            .select("id, estado, cliente_id, vuelo_id, vuelos(*)")\
+            .select("id, estado, cliente_id, vuelo_id, vuelos(*, aerolineas(*))")\
             .eq("cliente_id", user_res.user.id)\
             .execute()
         
-        print("Datos recibidos de DB:", res.data) # Esto te ayudará a ver en la consola si 'vuelos' viene con datos
+        print("Datos recibidos de DB:", res.data)
         return res.data
     except Exception as e:
         print(f"Error en Backend: {e}")
         raise HTTPException(status_code=500, detail="Error al obtener tus reservas")
     
-# --- 3. CANCELAR RESERVA (Con devolución de plaza) ---
+# --- 3. CANCELAR RESERVA ---
 @router.delete("/{reserva_id}")
 async def cancelar_reserva(reserva_id: str, request: Request):
     try:
@@ -69,10 +68,7 @@ async def cancelar_reserva(reserva_id: str, request: Request):
             raise HTTPException(status_code=404, detail="Reserva no encontrada")
 
         # 2. Verificar regla de 72h con fechas comparables (ambas con zona horaria UTC)
-        # Convertimos la fecha del vuelo y le añadimos UTC
         fecha_vuelo = datetime.fromisoformat(reserva.data["vuelos"]["fecha_salida"].replace('Z', '+00:00'))
-        
-        # Obtenemos la hora actual con zona horaria UTC
         ahora = datetime.now(timezone.utc)
 
         diff_segundos = (fecha_vuelo - ahora).total_seconds()
@@ -95,7 +91,6 @@ async def cancelar_reserva(reserva_id: str, request: Request):
 
     except Exception as e:
         print(f"Error al cancelar: {e}")
-        # Si el error ya es una HTTPException, la relanzamos tal cual
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail="Error interno al procesar la cancelación")
