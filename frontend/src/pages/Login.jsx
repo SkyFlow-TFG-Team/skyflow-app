@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,15 +10,18 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const tId = toast.loading("Verificando credenciales...");
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) return alert("Error: " + error.message);
+    if (error) {
+      toast.error("Error: " + error.message, { id: tId });
+      return;
+    }
 
     if (data.session) {
-      // Guardamos el token para el backend de Python
       localStorage.setItem("token", data.session.access_token);
-      alert("¡Bienvenido de nuevo!");
-      // Redirigimos sin recargar la página
+      toast.success("¡Bienvenido de nuevo! 🛫", { id: tId });
       navigate('/'); 
     }
   };

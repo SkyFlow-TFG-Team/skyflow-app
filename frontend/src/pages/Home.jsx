@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../api/api';
 import { supabase } from "../supabaseClient";
+import toast from 'react-hot-toast';
+import VueloCard from '../components/vuelos/VueloCard';
 
 const Home = () => {
   const [vuelos, setVuelos] = useState([]);
@@ -31,19 +33,23 @@ const Home = () => {
 
   const reservarVuelo = async (vueloId) => {
     if (!perfil) {
-      alert("Debes iniciar sesión para reservar un vuelo.");
+      toast.error("Debes iniciar sesión para reservar");
       return;
     }
-    try {
-      const response = await api.post('/reservas/', { vuelo_id: vueloId });
-      if (response.data) {
-        alert("✈️ ¡Reserva realizada con éxito!");
-        await cargarVuelos(); 
+
+    const promesaReserva = api.post('/reservas/', { vuelo_id: vueloId });
+
+    toast.promise(promesaReserva, {
+      loading: 'Confirmando tu asiento con SkyFlow...',
+      success: () => {
+        cargarVuelos();
+        return '✈️ ¡Billete reservado con éxito!';
+      },
+      error: (err) => {
+        const msg = err.response?.data?.detail || "No se pudo realizar la reserva";
+        return `❌ ${msg}`;
       }
-    } catch (err) {
-      const msg = err.response?.data?.detail || "Error al reservar";
-      alert(`❌ ${msg}`);
-    }
+    });
   };
 
   useEffect(() => {
@@ -77,7 +83,6 @@ const Home = () => {
         <p className="text-slate-500 text-lg">Reserva vuelos directos al mejor precio del mercado</p>
       </header>
 
-      {/* BARRA DE BÚSQUEDA PÚBLICA */}
       <div className="max-w-4xl mx-auto bg-white p-4 rounded-xl shadow-md border border-slate-200 mb-10 flex flex-col md:flex-row gap-4 items-end">
         <div className="flex-1 w-full">
           <label className="block text-xs font-bold text-gray-500 uppercase">Origen</label>
@@ -93,7 +98,6 @@ const Home = () => {
         </div>
       </div>
       
-      {/* RESULTADOS Y RESERVAS */}
       <section className="max-w-6xl mx-auto">
         {vuelos.length === 0 ? (
           <div className="bg-white p-10 rounded-xl border border-dashed border-slate-300 text-center text-slate-400">
@@ -102,77 +106,12 @@ const Home = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vuelos.map((vuelo) => (
-              <div key={vuelo.id} className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex flex-col">
-                <div className="bg-blue-600 p-3 text-white flex justify-between items-center">
-                  <span className="font-mono text-xs tracking-widest font-bold">VUELO #{vuelo.id.slice(0, 6)}</span>
-                  <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full uppercase font-bold backdrop-blur-sm">
-                    {vuelo.plazas_disponibles > 0 ? 'Disponible' : 'Agotado'}
-                  </span>
-                </div>
-                
-                <div className="p-6 flex-grow">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="text-center">
-                      <p className="text-3xl font-black text-slate-800">{vuelo.origen}</p>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center px-4">
-                      <span className="text-slate-400 text-xs mb-1">✈️</span>
-                      <div className="w-full border-t-2 border-dashed border-slate-200"></div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-3xl font-black text-slate-800">{vuelo.destino}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center mb-4">
-                    <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Fecha de salida</p>
-                      <p className="text-sm text-slate-700 font-semibold">{new Date(vuelo.fecha_salida).toLocaleString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Aerolínea</p>
-                      <p className="text-sm text-slate-700 font-semibold">{vuelo.aerolineas?.nombre || "N/A"}</p>
-                    </div>
-                  </div>
-
-                  {/* 📊 CONTADOR DE DISPONIBILIDAD PARA EL CLIENTE */}
-                  <div className="flex justify-between items-center px-1 mb-2">
-                    <p className="text-[11px] text-slate-500 font-bold uppercase">Plazas libres</p>
-                    <p className={`text-sm font-mono font-bold ${vuelo.plazas_disponibles > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                      {vuelo.plazas_disponibles} <span className="text-slate-300 font-normal">/ {vuelo.plazas_totales}</span>
-                    </p>
-                  </div>
-                  {/* Barra visual de progreso (Opcional, mejora mucho la UI) */}
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
-                    <div 
-                      className={`h-full transition-all duration-500 ${vuelo.plazas_disponibles > 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                      style={{ width: `${(vuelo.plazas_disponibles / vuelo.plazas_totales) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* SECCIÓN DE PRECIO Y BOTÓN */}
-                <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-white flex-col gap-3 sm:flex-row sm:gap-0">
-                  <div className="w-full sm:w-auto text-center sm:text-left">
-                    <p className="text-xs text-slate-500">Precio por pasajero</p>
-                    <p className="text-2xl font-black text-blue-600">{vuelo.precio}€</p>
-                  </div>
-                  
-                  {(!perfil || perfil.rol === "cliente") && (
-                    <button 
-                      onClick={() => reservarVuelo(vuelo.id)}
-                      disabled={vuelo.plazas_disponibles <= 0}
-                      className={`w-full sm:w-auto font-bold py-2 px-6 rounded-md shadow-sm transition-all ${
-                        vuelo.plazas_disponibles > 0 
-                        ? 'bg-slate-800 text-white hover:bg-slate-900' 
-                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      }`}
-                    >
-                      {vuelo.plazas_disponibles > 0 ? 'Reservar Vuelo' : 'Completo'}
-                    </button>
-                  )}
-                </div>
-              </div>
+              <VueloCard 
+                key={vuelo.id} 
+                vuelo={vuelo} 
+                perfil={perfil} 
+                onReservar={reservarVuelo} 
+              />
             ))}
           </div>
         )}

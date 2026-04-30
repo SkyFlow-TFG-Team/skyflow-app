@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import api from '../api/api';
+import api from '../../api/api';
+import toast from 'react-hot-toast';
 
 const FormularioAerolinea = ({ onAerolineaCreada }) => {
   const [nuevaAerolinea, setNuevaAerolinea] = useState({
@@ -10,19 +11,18 @@ const FormularioAerolinea = ({ onAerolineaCreada }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      // Usamos la misma instancia api que usan tus compañeros
-      await api.post('/aerolineas/', nuevaAerolinea);
-      alert("¡Aerolínea registrada con éxito!");
-      
-      // Limpiamos el formulario tras guardar
-      setNuevaAerolinea({ nombre: '', codigo_iata: '', pais: '' });
-      
-      // Si el componente padre necesita actualizar algo, le avisamos
-      if (onAerolineaCreada) onAerolineaCreada();
-    } catch (err) {
-      alert("Error: " + (err.response?.data?.detail || "Error en el servidor"));
-    }
+    
+    const promesa = api.post('/aerolineas/', nuevaAerolinea);
+
+    toast.promise(promesa, {
+      loading: 'Registrando aerolínea...',
+      success: () => {
+        setNuevaAerolinea({ nombre: '', codigo_iata: '', pais: '' });
+        if (onAerolineaCreada) onAerolineaCreada();
+        return '¡Aerolínea registrada con éxito! 🏢';
+      },
+      error: (err) => `Error: ${err.response?.data?.detail || "No se pudo registrar"}`
+    });
   };
 
   return (

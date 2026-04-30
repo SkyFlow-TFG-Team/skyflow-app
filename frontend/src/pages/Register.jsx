@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -11,35 +12,28 @@ const Register = () => {
 
 const handleRegister = async (e) => {
     e.preventDefault();
+    const tId = toast.loading("Creando tu cuenta en SkyFlow...");
 
     // 1. Crear usuario en Auth
     const { data, error } = await supabase.auth.signUp({ email, password });
 
-    if (error) return alert("Error: " + error.message);
+    if (error) {
+      toast.error("Error: " + error.message, { id: tId });
+      return;
+    }
 
     if (data.user) {
       // 2. Crear perfil en la tabla 'perfiles'
       const { error: pError } = await supabase
         .from('perfiles')
-        .insert([
-          { 
-            id: data.user.id, 
-            nombre: nombre, 
-            apellidos: apellidos, 
-            rol: 'usuario' 
-          }
-        ]);
+        .insert([{ id: data.user.id, nombre, apellidos, rol: 'usuario' }]);
 
       if (pError) {
-        console.error("Error al crear perfil:", pError);
+        toast.error("Cuenta creada, pero hubo un error en el perfil", { id: tId });
       } else {
-        alert("¡Registro completado! Por favor, inicia sesión.");
-        
-        // 🚀 EL TRUCO: Cerramos la sesión automática del registro
+        toast.success("¡Registro completado! Por favor, entra.", { id: tId });
         await supabase.auth.signOut();
         localStorage.removeItem("token");
-        
-        // Ahora sí, redirigimos al login con el Header limpio
         navigate('/login'); 
       }
     }
