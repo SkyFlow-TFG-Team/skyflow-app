@@ -12,6 +12,7 @@ router = APIRouter(prefix="/reservas", tags=["reservas"])
 
 class ReservaSchema(BaseModel):
     vuelo_id: str
+    asiento: str
 
 # --- 1. CREAR RESERVA ---
 @router.post("/")
@@ -24,18 +25,28 @@ async def crear_reserva(reserva: ReservaSchema, request: Request):
         
         cliente_id = user_res.user.id
 
+        # Verificar si quedan plazas
         vuelo = supabase.table("vuelos").select("plazas_disponibles").eq("id", reserva.vuelo_id).single().execute()
         if not vuelo.data or vuelo.data["plazas_disponibles"] <= 0:
             raise HTTPException(status_code=400, detail="No quedan plazas disponibles")
 
-        nueva_reserva = {"cliente_id": cliente_id, "vuelo_id": reserva.vuelo_id, "estado": "confirmada"}
+        # 🔹 CAMBIO AQUÍ: Incluimos el campo 'asiento' en el diccionario para la DB
+        nueva_reserva = {
+            "cliente_id": cliente_id, 
+            "vuelo_id": reserva.vuelo_id, 
+            "asiento": reserva.asiento,  # <--- IMPORTANTE: Guardamos el asiento
+            "estado": "confirmada"
+        }
+        
         res_insert = supabase.table("reservas").insert(nueva_reserva).execute()
 
+        # Actualizar plazas disponibles
         nueva_cantidad = vuelo.data["plazas_disponibles"] - 1
         supabase.table("vuelos").update({"plazas_disponibles": nueva_cantidad}).eq("id", reserva.vuelo_id).execute()
 
-        return {"mensaje": "Reserva realizada", "dato": res_insert.data}
+        return {"mensaje": f"Reserva realizada en el asiento {reserva.asiento}", "dato": res_insert.data}
     except Exception as e:
+        print(f"Error al crear reserva: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- 2. OBTENER MIS RESERVAS ---
@@ -43,22 +54,40 @@ async def crear_reserva(reserva: ReservaSchema, request: Request):
 async def obtener_mis_reservas(request: Request):
     try:
         auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Falta token de autorización")
+            
         token = auth_header.split(" ")[1]
         user_res = supabase.auth.get_user(token)
         
-        # 🔹 CAMBIO AQUÍ: Añadimos aerolineas(*) dentro de vuelos para hacer el JOIN completo
+        # 🔹 CORRECCIÓN: Añadimos asteriscos para traer todos los campos del join
         res = supabase.table("reservas")\
-            .select("id, estado, cliente_id, vuelo_id, vuelos(*, aerolineas(*))")\
+            .select("id, estado, cliente_id, vuelo_id, asiento, vuelos(*, aerolineas())")\
             .eq("cliente_id", user_res.user.id)\
             .execute()
         
-        print("Datos recibidos de DB:", res.data)
         return res.data
     except Exception as e:
         print(f"Error en Backend: {e}")
+        # Si el error es el token expirado, devolvemos un 401 claro
+        if "expired" in str(e):
+            raise HTTPException(status_code=401, detail="La sesión ha expirado, por favor vuelve a loguearte")
         raise HTTPException(status_code=500, detail="Error al obtener tus reservas")
     
-# --- 3. CANCELAR RESERVA ---
+# --- 3. OBTENER ASIENTOS OCUPADOS DE UN VUELO ---
+@router.get("/ocupados/{vuelo_id}")
+def obtener_asientos_ocupados(vuelo_id: str):
+    try:
+        # Consultamos las reservas de ese vuelo y solo traemos la columna 'asiento'
+        response = supabase.table("reservas").select("asiento").eq("vuelo_id", vuelo_id).execute()
+        
+        # Devolvemos una lista simple de strings: ["A1", "B2", ...]
+        asientos = [r['asiento'] for r in response.data if r['asiento']]
+        return asientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+# --- 4. CANCELAR RESERVA ---
 @router.delete("/{reserva_id}")
 async def cancelar_reserva(reserva_id: str, request: Request):
     try:
