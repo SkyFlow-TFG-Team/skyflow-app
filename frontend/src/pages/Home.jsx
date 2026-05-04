@@ -17,7 +17,7 @@ const Home = () => {
   const [aerolineas, setAerolineas] = useState([]);
   const [aerolineaSeleccionada, setAerolineaSeleccionada] = useState('');
 
-  // 1. Cargar las aerolíneas para el buscador
+  // 1. Cargar las aerolíneas para el buscador (Dropdown)
   const cargarAerolineas = async () => {
     try {
       const res = await api.get('/aerolineas/');
@@ -29,10 +29,11 @@ const Home = () => {
 
   // 2. Cargar vuelos con filtros combinados (API + Frontend)
   const cargarVuelos = async () => {
+    // Solo mostramos el loading de toast si ya no es la carga inicial
     const toastId = !cargando ? toast.loading("Actualizando vuelos...") : null;
 
     try {
-      // Filtros de texto por API
+      // Petición al Backend con filtros básicos (Origen/Destino)
       const res = await api.get('/vuelos/', {
         params: {
           origen: filtroOrigen || undefined,
@@ -40,16 +41,20 @@ const Home = () => {
         }
       });
 
-      // Filtros de precio y aerolínea por Frontend
+      // FILTRADO EN FRONTEND: Precio y nombre de Aerolínea
       const resultadosFiltrados = res.data.filter(vuelo => {
+        // Filtro de precio
         const cumplePrecio = Number(vuelo.precio) <= precioMax;
-        const cumpleAerolinea = aerolineaSeleccionada === '' || 
-                                vuelo.aerolineas?.nombre === aerolineaSeleccionada;
+        
+        // CORRECCIÓN CLAVE: Acceso a la relación de Supabase 'aerolineas' -> 'nombre'
+        const nombreVuelo = vuelo.aerolineas?.nombre || ''; 
+        const cumpleAerolinea = aerolineaSeleccionada === '' || nombreVuelo === aerolineaSeleccionada;
         
         return cumplePrecio && cumpleAerolinea;
       });
 
       setVuelos(resultadosFiltrados);
+      
       if (toastId) toast.success("Vuelos actualizados", { id: toastId });
     } catch (err) {
       console.error("Error al cargar los vuelos:", err);
@@ -59,13 +64,14 @@ const Home = () => {
     }
   };
 
-  // 3. Limpiar todos los filtros
+  // 3. Limpiar todos los filtros y recargar
   const limpiarFiltros = () => {
     setFiltroOrigen('');
     setFiltroDestino('');
     setPrecioMax(2000);
     setAerolineaSeleccionada('');
-    // Forzamos recarga limpia
+    
+    // Recarga inmediata sin filtros
     api.get('/vuelos/').then(res => setVuelos(res.data));
     toast.success("Filtros reseteados");
   };
@@ -81,7 +87,7 @@ const Home = () => {
     toast.promise(promesaReserva, {
       loading: 'Confirmando tu asiento...',
       success: () => {
-        cargarVuelos(); 
+        cargarVuelos(); // Recargamos para actualizar las plazas disponibles
         return '✈️ ¡Vuelo reservado con éxito!';
       },
       error: (err) => `❌ ${err.response?.data?.detail || "No se pudo reservar"}`
@@ -92,12 +98,17 @@ const Home = () => {
     let montado = true;
     
     const inicializar = async () => {
-      // Cargamos datos iniciales en paralelo
+      // Cargamos aerolíneas y vuelos iniciales
       await Promise.all([cargarVuelos(), cargarAerolineas()]);
       
+      // Verificamos sesión de usuario
       const { data: { user } } = await supabase.auth.getUser();
       if (user && montado) {
-        const { data } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
+        const { data } = await supabase
+          .from("perfiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
         setPerfil(data);
       }
     };
@@ -118,7 +129,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <header className="mb-10 text-center">
-        <h1 className="text-6xl font-black text-slate-800 tracking-tighter mb-4 italic">
+        <h1 className="text-6xl font-black text-slate-800 tracking-tighter mb-2 italic">
           Sky<span className="text-blue-600">Flow</span>
         </h1>
         <p className="text-slate-500 text-lg font-medium">Busca, compara y vuela al mejor precio</p>
@@ -139,7 +150,7 @@ const Home = () => {
         onLimpiar={limpiarFiltros}
       />
       
-      <section className="max-w-6xl mx-auto">
+      <section className="max-w-6xl mx-auto mt-12">
         {vuelos.length === 0 ? (
           <div className="bg-white p-20 rounded-3xl border-2 border-dashed border-slate-200 text-center shadow-sm">
             <div className="text-6xl mb-6">🏜️</div>
@@ -147,7 +158,7 @@ const Home = () => {
             <p className="text-slate-400 mb-6">Prueba a ajustar los filtros o el rango de precio.</p>
             <button 
               onClick={limpiarFiltros} 
-              className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all"
+              className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
             >
               Mostrar todos los vuelos
             </button>

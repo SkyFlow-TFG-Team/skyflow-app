@@ -1,99 +1,156 @@
 import React from 'react';
+import { Plane, Calendar, Clock, User, Trash2, MapPin } from 'lucide-react';
 
-const VueloCard = ({ vuelo, perfil, onEliminar, onReservar }) => {
-  // Lógica de colores y porcentajes para la barra de plazas
-  const porcentaje = (vuelo.plazas_disponibles / vuelo.plazas_totales) * 100;
-  const esAdmin = perfil?.rol === "admin";
-  const esCliente = !perfil || perfil?.rol === "cliente";
+import logoIberia from '../../assets/logos/iberia.png';
+import logoRyanair from '../../assets/logos/ryanair.png';
+import logoQatar from '../../assets/logos/qatar.png';
+import logoAmerican from '../../assets/logos/americanairlines.png';
+import logoWizzair from '../../assets/logos/wizzair.png';
+
+// Diccionario con nombres en MINÚSCULAS para evitar errores de coincidencia
+// Usamos fuentes de imágenes que permiten carga externa sin bloqueos (CORS)
+const LOGOS_AEROLINEAS = {
+  'iberia': logoIberia,
+  'ryanair': logoRyanair,
+  'qatar airways': logoQatar,
+  'american airlines': logoAmerican,
+  'wizzair': logoWizzair
+};
+
+const VueloCard = ({ vuelo, perfil, onReservar, onEliminar }) => {
+  
+  // 1. NORMALIZACIÓN DE DATOS
+  // Extraemos el nombre de la relación de Supabase y lo limpiamos
+  const nombreRaw = vuelo.aerolineas?.nombre || "SkyFlow";
+  const nombreKey = nombreRaw.toLowerCase().trim();
+
+  // 2. LÓGICA DE LOGO INFALIBLE
+  // Si no está en nuestro diccionario, usamos UI-Avatars para crear un logo de texto pro
+  const logoUrl = LOGOS_AEROLINEAS[nombreKey] || 
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(nombreRaw)}&background=0284c7&color=fff&bold=true&font-size=0.33`;
+
+  // 3. EXTRACCIÓN DE HORA (Basado en tu timestamp de Supabase)
+  const obtenerHora = () => {
+    if (!vuelo.fecha_salida) return "00:00";
+    try {
+      const fecha = new Date(vuelo.fecha_salida);
+      return fecha.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+    } catch {
+      return "00:00";
+    }
+  };
+
+  const horaFormateada = obtenerHora();
+
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex flex-col h-full">
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-500 overflow-hidden group">
       
-      {/* CABECERA DINÁMICA */}
-      <div className="bg-blue-600 p-3 text-white flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs tracking-widest font-bold">VUELO #{vuelo.id.slice(0, 6)}</span>
-          <span className="text-[10px] bg-white/20 px-2 py-1 rounded-full uppercase font-bold backdrop-blur-sm">
-            {vuelo.plazas_disponibles > 0 ? 'Disponible' : 'Agotado'}
-          </span>
-        </div>
-        
-        {/* Solo el Admin ve el botón de borrar aquí arriba */}
-        {esAdmin && onEliminar && (
-          <button 
-            onClick={() => onEliminar(vuelo.id)} 
-            className="text-[10px] bg-red-500/30 hover:bg-red-500 text-white border border-white/20 px-3 py-1 rounded-full uppercase font-bold transition-all"
-          >
-            Borrar
-          </button>
-        )}
-      </div>
-
-      <div className="p-6 flex-grow">
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-center">
-            <p className="text-3xl font-black text-slate-800 uppercase">{vuelo.origen}</p>
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Origen</p>
-          </div>
-          <div className="flex-1 flex flex-col items-center px-4">
-            <span className="text-slate-400 text-xs mb-1">✈️</span>
-            <div className="w-full border-t-2 border-dashed border-slate-200"></div>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-black text-slate-800 uppercase">{vuelo.destino}</p>
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Destino</p>
-          </div>
-        </div>
-
-        <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center mb-4">
-          <div>
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Salida</p>
-            <p className="text-sm text-slate-700 font-semibold">
-                {new Date(vuelo.fecha_salida).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Aerolínea</p>
-            <p className="text-sm text-slate-700 font-semibold">{vuelo.aerolineas?.nombre || "SkyFlow"}</p>
-          </div>
-        </div>
-
-        {/* BARRA DE PLAZAS (Visible para todos) */}
-        <div className="flex justify-between items-center px-1 mb-2">
-          <p className="text-[11px] text-slate-500 font-bold uppercase">Disponibilidad</p>
-          <p className={`text-sm font-mono font-bold ${vuelo.plazas_disponibles > 0 ? 'text-green-600' : 'text-red-500'}`}>
-            {vuelo.plazas_disponibles} <span className="text-slate-300 font-normal">/ {vuelo.plazas_totales}</span>
-          </p>
-        </div>
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div 
-            className={`h-full transition-all duration-500 ${vuelo.plazas_disponibles > 0 ? 'bg-green-500' : 'bg-red-500'}`}
-            style={{ width: `${porcentaje}%` }}
+      {/* HEADER: LOGO Y PRECIO */}
+      <div className="p-5 flex justify-between items-center bg-slate-50/50 border-b border-slate-100">
+        <div className="h-10 w-32 flex items-center">
+          <img 
+            src={logoUrl} 
+            alt={nombreRaw} 
+            className="max-h-full max-w-full object-contain transition-all duration-500 group-hover:scale-110" 
+            onError={(e) => { 
+              // Fallback final: Avión azul genérico si falla el CDN
+              e.target.onerror = null; 
+              e.target.src = 'https://cdn-icons-png.flaticon.com/512/3125/3125713.png'; 
+            }}
           />
         </div>
+        <div className="text-right">
+          <span className="block text-2xl font-black text-slate-800 tracking-tighter">{vuelo.precio}€</span>
+          <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">PRECIO FINAL</span>
+        </div>
       </div>
 
-      {/* FOOTER: PRECIO Y ACCIÓN CLIENTE */}
-      <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-white">
-        <div>
-          <p className="text-xs text-slate-500">Precio</p>
-          <p className="text-2xl font-black text-blue-600">{vuelo.precio}€</p>
+      <div className="p-6">
+        {/* TRAYECTO VISUAL */}
+        <div className="flex justify-between items-center mb-8 relative">
+          <div className="z-10 bg-white pr-2">
+            <h3 className="text-3xl font-black text-slate-800 tracking-tighter leading-none">
+              {vuelo.origen}
+            </h3>
+            <div className="flex items-center gap-1 text-slate-400 mt-1">
+              <MapPin size={10} />
+              <span className="text-[10px] font-bold uppercase">ORIGEN</span>
+            </div>
+          </div>
+
+          {/* Línea con avión animado */}
+          <div className="flex-1 flex items-center relative group/plane mx-2">
+             <div className="h-[2px] w-full border-t-2 border-dashed border-slate-200 relative">
+                <div className="absolute -top-[11px] left-0 w-full transition-all duration-1000 group-hover/plane:translate-x-[85%]">
+                   <Plane 
+                     className="text-blue-600 fill-blue-600 rotate-90 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]" 
+                     size={20} 
+                   />
+                </div>
+             </div>
+          </div>
+
+          <div className="z-10 bg-white pl-2 text-right">
+            <h3 className="text-3xl font-black text-slate-800 tracking-tighter leading-none">
+              {vuelo.destino}
+            </h3>
+            <div className="flex items-center justify-end gap-1 text-slate-400 mt-1">
+              <span className="text-[10px] font-bold uppercase">DESTINO</span>
+              <MapPin size={10} />
+            </div>
+          </div>
         </div>
 
-        {/* Solo el Cliente o Anónimo ven el botón de reservar */}
-        {esCliente && onReservar && (
-          <button 
-            onClick={() => onReservar(vuelo.id)}
-            disabled={vuelo.plazas_disponibles <= 0}
-            className={`font-bold py-2 px-6 rounded-md shadow-sm transition-all ${
-              vuelo.plazas_disponibles > 0 
-              ? 'bg-slate-800 text-white hover:bg-slate-900' 
-              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-          >
-            {vuelo.plazas_disponibles > 0 ? 'Reservar' : 'Completo'}
-          </button>
-        )}
+        {/* DETALLES GRID */}
+        <div className="grid grid-cols-2 gap-3 mb-6 bg-slate-50/80 p-4 rounded-2xl border border-slate-100">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <Calendar size={14} className="text-blue-500" />
+            {vuelo.fecha_salida ? new Date(vuelo.fecha_salida).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : "---"}
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <Clock size={14} className="text-blue-500" />
+            {horaFormateada}
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <User size={14} className="text-blue-500" />
+            <span className={vuelo.plazas_disponibles === 0 ? 'text-red-500' : ''}>
+              {vuelo.plazas_disponibles} plazas libres
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase">
+            <Plane size={14} />
+            DIRECTO
+          </div>
+        </div>
+
+        {/* BOTONES DE ACCIÓN */}
+        <div className="space-y-2">
+          {perfil?.rol === 'admin' ? (
+            <button 
+              onClick={() => onEliminar(vuelo.id)}
+              className="w-full bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm shadow-red-100"
+            >
+              ELIMINAR VUELO
+            </button>
+          ) : (
+            <button 
+              onClick={() => onReservar(vuelo.id)}
+              disabled={vuelo.plazas_disponibles === 0}
+              className={`w-full font-black py-4 rounded-2xl transition-all duration-300 shadow-lg tracking-tight ${
+                vuelo.plazas_disponibles === 0 
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 active:scale-95 text-lg'
+              }`}
+            >
+              {vuelo.plazas_disponibles === 0 ? 'VUELO COMPLETO' : 'RESERVAR ASIENTO'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
