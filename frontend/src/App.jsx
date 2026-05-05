@@ -7,7 +7,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
-import AssignedFlights from "./pages/AssignedFlights"
+import AssignedFlights from "./pages/AssignedFlights";
+import BoardingPass from "./pages/BoardingPass";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -52,6 +53,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyBookings />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* 🎫 TARJETA DE EMBARQUE */}
+          <Route 
+            path="/boarding-pass/:reservaId" 
+            element={
+              <ProtectedRoute>
+                <BoardingPass />
               </ProtectedRoute>
             } 
           />
