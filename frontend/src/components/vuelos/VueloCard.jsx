@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plane, Calendar, Clock, User, Trash2, MapPin } from 'lucide-react';
+import { Plane, Calendar, Clock, User, Trash2, MapPin, Heart } from 'lucide-react';
 
 import logoIberia from '../../assets/logos/iberia.png';
 import logoRyanair from '../../assets/logos/ryanair.png';
@@ -8,7 +8,6 @@ import logoAmerican from '../../assets/logos/americanairlines.png';
 import logoWizzair from '../../assets/logos/wizzair.png';
 
 // Diccionario con nombres en MINÚSCULAS para evitar errores de coincidencia
-// Usamos fuentes de imágenes que permiten carga externa sin bloqueos (CORS)
 const LOGOS_AEROLINEAS = {
   'iberia': logoIberia,
   'ryanair': logoRyanair,
@@ -17,19 +16,18 @@ const LOGOS_AEROLINEAS = {
   'wizzair': logoWizzair
 };
 
-const VueloCard = ({ vuelo, perfil, onReservar, onEliminar }) => {
+// 🔹 AÑADIDAS PROPS: isFavorito y onToggleFavorito
+const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggleFavorito }) => {
   
   // 1. NORMALIZACIÓN DE DATOS
-  // Extraemos el nombre de la relación de Supabase y lo limpiamos
   const nombreRaw = vuelo.aerolineas?.nombre || "SkyFlow";
   const nombreKey = nombreRaw.toLowerCase().trim();
 
   // 2. LÓGICA DE LOGO INFALIBLE
-  // Si no está en nuestro diccionario, usamos UI-Avatars para crear un logo de texto pro
   const logoUrl = LOGOS_AEROLINEAS[nombreKey] || 
     `https://ui-avatars.com/api/?name=${encodeURIComponent(nombreRaw)}&background=0284c7&color=fff&bold=true&font-size=0.33`;
 
-  // 3. EXTRACCIÓN DE HORA (Basado en tu timestamp de Supabase)
+  // 3. EXTRACCIÓN DE HORA
   const obtenerHora = () => {
     if (!vuelo.fecha_salida) return "00:00";
     try {
@@ -46,11 +44,10 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar }) => {
 
   const horaFormateada = obtenerHora();
 
-
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-500 overflow-hidden group">
       
-      {/* HEADER: LOGO Y PRECIO */}
+      {/* HEADER: LOGO Y PRECIO + CORAZÓN */}
       <div className="p-5 flex justify-between items-center bg-slate-50/50 border-b border-slate-100">
         <div className="h-10 w-32 flex items-center">
           <img 
@@ -58,15 +55,29 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar }) => {
             alt={nombreRaw} 
             className="max-h-full max-w-full object-contain transition-all duration-500 group-hover:scale-110" 
             onError={(e) => { 
-              // Fallback final: Avión azul genérico si falla el CDN
               e.target.onerror = null; 
               e.target.src = 'https://cdn-icons-png.flaticon.com/512/3125/3125713.png'; 
             }}
           />
         </div>
-        <div className="text-right">
-          <span className="block text-2xl font-black text-slate-800 tracking-tighter">{vuelo.precio}€</span>
-          <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">PRECIO FINAL</span>
+        <div className="text-right flex flex-col items-end">
+          <div className="flex items-center gap-3">
+            {/* 🔹 CORAZÓN DE FAVORITOS: Solo clientes */}
+            {perfil && perfil.rol !== 'admin' && onToggleFavorito && (
+              <button 
+                onClick={() => onToggleFavorito(vuelo.id)}
+                className="p-1.5 rounded-full hover:bg-slate-200 transition-all active:scale-90"
+                title={isFavorito ? "Quitar de favoritos" : "Añadir a favoritos"}
+              >
+                <Heart 
+                  size={22} 
+                  className={`transition-colors duration-300 ${isFavorito ? 'fill-red-500 text-red-500' : 'text-slate-300 hover:text-red-400'}`} 
+                />
+              </button>
+            )}
+            <span className="block text-2xl font-black text-slate-800 tracking-tighter">{vuelo.precio}€</span>
+          </div>
+          <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-1">PRECIO FINAL</span>
         </div>
       </div>
 
@@ -83,7 +94,6 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar }) => {
             </div>
           </div>
 
-          {/* Línea con avión animado */}
           <div className="flex-1 flex items-center relative group/plane mx-2">
              <div className="h-[2px] w-full border-t-2 border-dashed border-slate-200 relative">
                 <div className="absolute -top-[11px] left-0 w-full transition-all duration-1000 group-hover/plane:translate-x-[85%]">

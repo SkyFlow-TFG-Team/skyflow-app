@@ -26,6 +26,9 @@ const Home = () => {
   const [perfil, setPerfil] = useState(null);
   const [cargando, setCargando] = useState(true);
   
+  // 🔹 ESTADO PARA FAVORITOS
+  const [favoritos, setFavoritos] = useState([]);
+
   // --- ESTADOS PARA EL MAPA DE ASIENTOS ---
   const [modalAbierto, setModalAbierto] = useState(false);
   const [vueloSeleccionado, setVueloSeleccionado] = useState(null);
@@ -104,7 +107,48 @@ const Home = () => {
     }
   };
 
-  // 💳 Abrir pasarela de pago (sustituye al antiguo confirmarReserva directo)
+  // 🔹 LÓGICA DE FAVORITOS
+  const handleToggleFavorito = async (vueloId) => {
+    if (!perfil) {
+      toast.error("Inicia sesión para guardar tus vuelos favoritos");
+      return;
+    }
+
+    const isFav = favoritos.includes(vueloId);
+    
+    try {
+      if (isFav) {
+        await supabase.from('favoritos').delete().match({ cliente_id: perfil.id, vuelo_id: vueloId });
+        setFavoritos(prev => prev.filter(id => id !== vueloId));
+        toast.success("Eliminado de favoritos", { id: "fav" });
+      } else {
+        await supabase.from('favoritos').insert({ cliente_id: perfil.id, vuelo_id: vueloId });
+        setFavoritos(prev => [...prev, vueloId]);
+        toast.success("¡Guardado en tu lista de deseos! ❤️", { id: "fav" });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al actualizar favoritos", { id: "fav" });
+    }
+  };
+
+  // 🗑️ LÓGICA DE ADMIN: Eliminar vuelo
+  const handleEliminarVuelo = async (vueloId) => {
+    if (!window.confirm("¿Seguro que quieres eliminar este vuelo del sistema?")) return;
+
+    const promesa = api.delete(`/vuelos/${vueloId}`);
+
+    toast.promise(promesa, {
+      loading: 'Eliminando vuelo del radar...',
+      success: () => {
+        cargarVuelos(); // Refresca la lista al borrar
+        return 'Vuelo eliminado correctamente';
+      },
+      error: 'Error al eliminar el vuelo'
+    });
+  };
+
+  // 💳 Abrir pasarela de pago
   const abrirPasarelaPago = () => {
     if (!asientoElegido) {
       toast.error("Por favor, selecciona un asiento primero");
@@ -137,7 +181,6 @@ const Home = () => {
 
     setProcesandoPago(true);
 
-    // Simulamos un delay de procesamiento bancario (1.5s)
     await new Promise(res => setTimeout(res, 1500));
 
     try {
@@ -175,6 +218,14 @@ const Home = () => {
           .eq("id", user.id)
           .single();
         setPerfil(data);
+
+        const { data: favsData } = await supabase
+          .from("favoritos")
+          .select("vuelo_id")
+          .eq("cliente_id", user.id);
+        if (favsData) {
+          setFavoritos(favsData.map(f => f.vuelo_id));
+        }
       }
     };
     inicializar();
@@ -233,19 +284,21 @@ const Home = () => {
                 key={vuelo.id} 
                 vuelo={vuelo} 
                 perfil={perfil} 
-                onReservar={() => abrirSelectorAsientos(vuelo)} 
+                onReservar={() => abrirSelectorAsientos(vuelo)}
+                isFavorito={favoritos.includes(vuelo.id)}
+                onToggleFavorito={handleToggleFavorito}
+                onEliminar={handleEliminarVuelo} // 🔹 AQUÍ ESTÁ CONECTADA LA FUNCIÓN DE ELIMINAR
               />
             ))}
           </div>
         )}
       </section>
 
-      {/* MODAL DEL MAPA DE ASIENTOS — intacto */}
+      {/* MODAL DEL MAPA DE ASIENTOS */}
       {modalAbierto && vueloSeleccionado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-white rounded-[32px] w-full max-w-[300px] shadow-2xl flex flex-col h-full max-h-[80vh] overflow-hidden animate-in zoom-in duration-200">
             
-            {/* Header Fijo */}
             <div className="p-4 border-b flex justify-between items-center bg-white shrink-0">
               <div>
                 <h2 className="text-sm font-black text-slate-800">Seleccionar Asiento</h2>
@@ -258,7 +311,6 @@ const Home = () => {
               </button>
             </div>
 
-            {/* CUERPO */}
             <div className="flex-1 overflow-y-auto bg-slate-50 flex justify-center items-start min-h-0 custom-scrollbar">
               <MapaAsientos 
                 ocupados={asientosOcupados}
@@ -267,7 +319,6 @@ const Home = () => {
               />
             </div>
 
-            {/* Footer Fijo — abre la pasarela de pago */}
             <div className="p-4 bg-white border-t shrink-0">
               <button 
                 onClick={abrirPasarelaPago}
@@ -293,7 +344,6 @@ const Home = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-white rounded-[32px] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in duration-200">
 
-            {/* PANTALLA DE ÉXITO */}
             {pagoCompletado ? (
               <div className="p-10 flex flex-col items-center text-center gap-4">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
@@ -316,7 +366,6 @@ const Home = () => {
               </div>
             ) : (
               <>
-                {/* CABECERA */}
                 <div className="bg-slate-900 px-6 py-5 flex justify-between items-center">
                   <div>
                     <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Pago seguro</p>
@@ -333,16 +382,12 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* FORMULARIO */}
                 <div className="p-6 space-y-4">
-
-                  {/* Icono tarjeta */}
                   <div className="flex items-center gap-2 mb-2">
                     <CreditCard size={18} className="text-blue-600" />
                     <span className="text-sm font-black text-slate-700 uppercase tracking-widest">Datos de tarjeta</span>
                   </div>
 
-                  {/* Nombre titular */}
                   <div>
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nombre del titular</label>
                     <input
@@ -355,7 +400,6 @@ const Home = () => {
                     {erroresTarjeta.nombre && <p className="text-red-500 text-[10px] mt-1 font-bold">{erroresTarjeta.nombre}</p>}
                   </div>
 
-                  {/* Número de tarjeta */}
                   <div>
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Número de tarjeta</label>
                     <input
@@ -368,7 +412,6 @@ const Home = () => {
                     {erroresTarjeta.numero && <p className="text-red-500 text-[10px] mt-1 font-bold">{erroresTarjeta.numero}</p>}
                   </div>
 
-                  {/* Caducidad y CVV */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Caducidad</label>
@@ -395,12 +438,10 @@ const Home = () => {
                     </div>
                   </div>
 
-                  {/* Nota simulación */}
                   <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center bg-slate-50 rounded-xl p-2">
                     🧪 Entorno de pruebas — ningún cobro real se realizará
                   </p>
 
-                  {/* Botones */}
                   <button
                     onClick={procesarPago}
                     disabled={procesandoPago}
