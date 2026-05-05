@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../api/api";
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 import { supabase } from "../supabaseClient";
-import { Calendar, Banknote, Download, Armchair, Plane, XCircle } from "lucide-react";
+import { Calendar, Banknote, Download, Armchair, Plane, XCircle, QrCode } from "lucide-react";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [perfil, setPerfil] = useState(null);
+  const navigate = useNavigate();
 
   // Función para verificar si el vuelo es cancelable (más de 72h)
   const puedeCancelar = (fechaStr) => {
@@ -203,6 +205,15 @@ export default function MyBookings() {
 
                 {/* LADO DERECHO: ACCIONES */}
                 <div className="bg-slate-50/50 p-6 flex flex-col justify-center items-center gap-3 md:border-l border-slate-100 min-w-[200px]">
+                  
+                  {/* 🆕 BOTÓN BOARDING PASS DIGITAL */}
+                  <button
+                    onClick={() => navigate(`/boarding-pass/${r.id}`)}
+                    className="bg-blue-600 text-white w-40 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                  >
+                    <QrCode size={14} /> Boarding Pass
+                  </button>
+
                   <button
                     onClick={() => handleDescargar(r, vuelo)}
                     className="bg-slate-900 text-white w-40 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
