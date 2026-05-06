@@ -65,23 +65,29 @@ const Buscador = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 mb-10 transition-all text-left">
+    <div className="max-w-6xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 mb-10 transition-all text-left">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
         
         {/* Origen Inteligente */}
         <div className="space-y-2 relative">
-          <label className="text-xs font-bold text-slate-400 uppercase ml-1 tracking-wider">Origen</label>
+          <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-wider">Origen</label>
           <input 
             type="text" 
             placeholder="¿Desde dónde?" 
             value={filtroOrigen} 
             onChange={handleOrigenChange} 
-            className="w-full border-0 bg-slate-50 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+            className="w-full border-0 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600" 
           />
           {mostrarSugOrigen && sugerenciasOrigen.length > 0 && (
-            <ul className="absolute z-50 w-full top-[100%] left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+            <ul className="absolute z-50 w-full top-[100%] left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
               {sugerenciasOrigen.map((ciudad, idx) => (
-                <li key={idx} onClick={() => seleccionarOrigen(ciudad)} className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-slate-700 text-sm">📍 {ciudad}</li>
+                <li 
+                  key={idx} 
+                  onClick={() => seleccionarOrigen(ciudad)} 
+                  className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer text-slate-700 dark:text-slate-300 text-sm transition-colors"
+                >
+                  📍 {ciudad}
+                </li>
               ))}
             </ul>
           )}
@@ -89,58 +95,64 @@ const Buscador = ({
 
         {/* Destino Inteligente */}
         <div className="space-y-2 relative">
-          <label className="text-xs font-bold text-slate-400 uppercase ml-1 tracking-wider">Destino</label>
+          <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-wider">Destino</label>
           <input 
             type="text" 
             placeholder="¿A dónde vas?" 
             value={filtroDestino} 
             onChange={handleDestinoChange} 
-            className="w-full border-0 bg-slate-50 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+            className="w-full border-0 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600" 
           />
           {mostrarSugDestino && sugerenciasDestino.length > 0 && (
-            <ul className="absolute z-50 w-full top-[100%] left-0 mt-1 bg-white border border-slate-100 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+            <ul className="absolute z-50 w-full top-[100%] left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
               {sugerenciasDestino.map((ciudad, idx) => (
-                <li key={idx} onClick={() => seleccionarDestino(ciudad)} className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-slate-700 text-sm">📍 {ciudad}</li>
+                <li 
+                  key={idx} 
+                  onClick={() => seleccionarDestino(ciudad)} 
+                  className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer text-slate-700 dark:text-slate-300 text-sm transition-colors"
+                >
+                  📍 {ciudad}
+                </li>
               ))}
             </ul>
           )}
         </div>
 
-        {/* Aerolínea (Intacto) */}
+        {/* Aerolínea */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 uppercase ml-1 tracking-wider">Aerolínea</label>
+          <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-wider">Aerolínea</label>
           <select 
             value={aerolineaSeleccionada}
             onChange={(e) => setAerolineaSeleccionada(e.target.value)}
-            className="w-full border-0 bg-slate-50 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-600 font-medium appearance-none"
+            className="w-full border-0 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-600 dark:text-slate-300 font-medium appearance-none"
           >
-            <option value="">Todas las compañías</option>
+            <option value="" className="dark:bg-slate-800">Todas las compañías</option>
             {aerolineas.map((a) => (
-              <option key={a.id} value={a.nombre}>{a.nombre}</option>
+              <option key={a.id} value={a.nombre} className="dark:bg-slate-800">{a.nombre}</option>
             ))}
           </select>
         </div>
 
-        {/* Slider de Precio (Intacto) */}
+        {/* Slider de Precio */}
         <div className="space-y-2">
           <div className="flex justify-between items-center px-1">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Máx: {precioMax}€</label>
+            <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Máx: {precioMax}€</label>
           </div>
           <input 
             type="range" 
             min="0" max="2000" step="50"
             value={precioMax} 
             onChange={(e) => setPrecioMax(Number(e.target.value))} 
-            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600" 
           />
         </div>
 
-        {/* Botones (Intactos) */}
+        {/* Botones */}
         <div className="flex gap-2">
-          <button onClick={onBuscar} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">
+          <button onClick={onBuscar} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-none transition-all active:scale-95">
             🔍
           </button>
-          <button onClick={onLimpiar} className="bg-slate-100 text-slate-500 font-bold px-4 py-3 rounded-xl hover:bg-slate-200 transition-all">
+          <button onClick={onLimpiar} className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold px-4 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
             🧹
           </button>
         </div>

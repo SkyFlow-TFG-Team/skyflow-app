@@ -27,12 +27,51 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh]">
-      <form onSubmit={handleLogin} className="bg-white p-8 rounded-xl shadow-md w-80 border border-slate-200">
-        <h2 className="text-xl font-bold mb-4 text-center">Iniciar Sesión</h2>
-        <input type="email" placeholder="Email" className="w-full mb-3 p-2 border rounded" onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Password" className="w-full mb-3 p-2 border rounded" onChange={(e) => setPassword(e.target.value)} required />
-        <button className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">Entrar</button>
+    <div className="flex justify-center items-center min-h-[80vh] transition-colors duration-500">
+      <form 
+        onSubmit={handleLogin} 
+        className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl w-96 border border-slate-200 dark:border-slate-800 transition-all"
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter italic">
+            Sky<span className="text-blue-600">Flow</span>
+          </h2>
+          <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">
+            Iniciar Sesión
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-2 tracking-widest">Email</label>
+            <input 
+              type="email" 
+              placeholder="tu@email.com" 
+              className="w-full mt-1 p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-2 tracking-widest">Contraseña</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              className="w-full mt-1 p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+          </div>
+
+          <button className="w-full bg-blue-600 text-white p-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-none transition-all active:scale-95 mt-4">
+            Entrar al radar
+          </button>
+        </div>
+
+        <p className="text-center mt-6 text-xs text-slate-400 dark:text-slate-500 font-medium">
+          ¿No tienes cuenta? <span className="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => navigate('/register')}>Regístrate</span>
+        </p>
       </form>
     </div>
   );

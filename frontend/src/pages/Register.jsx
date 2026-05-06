@@ -10,7 +10,7 @@ const Register = () => {
   const [apellidos, setApellidos] = useState('');
   const navigate = useNavigate();
 
-const handleRegister = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     const tId = toast.loading("Creando tu cuenta en SkyFlow...");
 
@@ -40,62 +40,73 @@ const handleRegister = async (e) => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh]">
-      <form onSubmit={handleRegister} className="bg-white p-8 rounded-xl shadow-md w-80 border border-slate-200">
-        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Crear Cuenta</h2>
+    <div className="flex justify-center items-center min-h-[80vh] transition-colors duration-500 p-4">
+      <form 
+        onSubmit={handleRegister} 
+        className="bg-white dark:bg-slate-900 p-8 rounded-[32px] shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-800 transition-all"
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter italic">
+            Sky<span className="text-blue-600">Flow</span>
+          </h2>
+          <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">
+            Únete a la tripulación
+          </p>
+        </div>
         
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Nombre</label>
-            <input 
-              type="text" 
-              placeholder="Ej. Alejandro" 
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" 
-              onChange={(e) => setNombre(e.target.value)} 
-              required 
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-2 tracking-widest mb-1">Nombre</label>
+              <input 
+                type="text" 
+                placeholder="Alejandro" 
+                className="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600" 
+                onChange={(e) => setNombre(e.target.value)} 
+                required 
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-2 tracking-widest mb-1">Apellidos</label>
+              <input 
+                type="text" 
+                placeholder="Quiñones" 
+                className="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600" 
+                onChange={(e) => setApellidos(e.target.value)} 
+                required 
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Apellidos</label>
-            <input 
-              type="text" 
-              placeholder="Ej. Quiñones" 
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" 
-              onChange={(e) => setApellidos(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Email</label>
+            <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-2 tracking-widest mb-1">Email</label>
             <input 
               type="email" 
               placeholder="correo@ejemplo.com" 
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" 
+              className="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600" 
               onChange={(e) => setEmail(e.target.value)} 
               required 
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
+            <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase ml-2 tracking-widest mb-1">Password</label>
             <input 
               type="password" 
               placeholder="••••••••" 
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" 
+              className="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600" 
               onChange={(e) => setPassword(e.target.value)} 
               required 
             />
           </div>
 
-          <button className="w-full bg-green-600 text-white font-bold p-3 rounded-lg hover:bg-green-700 transition shadow-lg mt-2">
-            Registrarme
+          <button className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none active:scale-95 mt-4 tracking-widest text-sm uppercase">
+            REGISTRARME
           </button>
         </div>
 
-        <p className="mt-4 text-center text-sm text-slate-600">
-          ¿Ya tienes cuenta? <a href="/login" className="text-blue-600 font-bold hover:underline">Entrar</a>
+        <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500 font-medium">
+          ¿Ya tienes cuenta? <span onClick={() => navigate('/login')} className="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer">Inicia sesión</span>
         </p>
       </form>
     </div>

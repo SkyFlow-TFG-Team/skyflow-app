@@ -80,7 +80,7 @@ export default function Profile() {
       setVuelosFavoritos(prev => prev.filter(vuelo => vuelo.id !== vueloId));
       
       toast.success("Vuelo eliminado de tu lista", { icon: '🗑️' });
-    } catch (error) {
+    } catch {
       toast.error("Error al quitar de favoritos");
     }
   };
@@ -148,28 +148,28 @@ export default function Profile() {
 
   // Badge de color según rol
   const rolColor = {
-    admin:    "bg-red-100 text-red-700 border-red-200",
-    empleado: "bg-blue-100 text-blue-700 border-blue-200",
-    cliente:  "bg-green-100 text-green-700 border-green-200",
+    admin:    "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
+    empleado: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
+    cliente:  "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
   };
 
-  if (loading) return <p className="text-center mt-10 font-bold text-slate-500 animate-pulse">Cargando perfil...</p>;
-  if (!profile) return <p className="text-center mt-10">No se encontró el perfil.</p>;
+  if (loading) return <p className="text-center mt-10 font-bold text-slate-500 animate-pulse dark:text-slate-400">Cargando perfil...</p>;
+  if (!profile) return <p className="text-center mt-10 dark:text-white">No se encontró el perfil.</p>;
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 space-y-8 px-4 pb-12">
+    <div className="max-w-6xl mx-auto mt-10 space-y-8 px-4 pb-12 transition-colors duration-500">
 
-      {/* PERFIL (Intacto) */}
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden max-w-4xl mx-auto">
-        <div className="h-24 bg-gradient-to-r from-blue-500 to-blue-700" />
+      {/* PERFIL */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-md overflow-hidden max-w-4xl mx-auto border dark:border-slate-800">
+        <div className="h-24 bg-gradient-to-r from-blue-500 to-blue-700 dark:from-blue-700 dark:to-blue-900" />
         <div className="px-6 pb-6">
           <div className="flex items-end justify-between -mt-12 mb-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-slate-200">
+              <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-900 shadow-md overflow-hidden bg-slate-200 dark:bg-slate-800">
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt="Foto de perfil" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl text-slate-400">
+                  <div className="w-full h-full flex items-center justify-center text-3xl text-slate-400 dark:text-slate-500 font-bold">
                     {profile.nombre?.charAt(0).toUpperCase() ?? "?"}
                   </div>
                 )}
@@ -184,40 +184,40 @@ export default function Profile() {
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
             </div>
-            <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full border ${rolColor[profile.rol] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+            <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full border ${rolColor[profile.rol] ?? "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400"}`}>
               {profile.rol ?? "Usuario"}
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-800">
+          <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">
             {profile.nombre} {profile.apellidos}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">{profile.email}</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">{profile.email}</p>
         </div>
       </div>
 
-      {/* DATOS DEL PERFIL (Intacto) */}
-      <div className="bg-white rounded-2xl shadow-md p-6 space-y-4 max-w-4xl mx-auto">
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Mis datos</h2>
+      {/* DATOS DEL PERFIL */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-md p-6 space-y-4 max-w-4xl mx-auto border dark:border-slate-800">
+        <h2 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Mis datos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Nombre</p>
-            <p className="text-slate-800 font-semibold">{profile.nombre}</p>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 transition-colors">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold mb-1">Nombre</p>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">{profile.nombre}</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Apellidos</p>
-            <p className="text-slate-800 font-semibold">{profile.apellidos}</p>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 transition-colors">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold mb-1">Apellidos</p>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">{profile.apellidos}</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-4 md:col-span-2">
-            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Email</p>
-            <p className="text-slate-800 font-semibold">{profile.email}</p>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 md:col-span-2 transition-colors">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold mb-1">Email</p>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">{profile.email}</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Rol</p>
-            <p className="text-slate-800 font-semibold capitalize">{profile.rol}</p>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 transition-colors">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold mb-1">Rol</p>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold capitalize">{profile.rol}</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Miembro desde</p>
-            <p className="text-slate-800 font-semibold">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 transition-colors">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold mb-1">Miembro desde</p>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">
               {profile.creado_en ? new Date(profile.creado_en).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" }) : "—"}
             </p>
           </div>
@@ -226,18 +226,18 @@ export default function Profile() {
 
       {/* 🔹 TAREA 4: LISTA DE DESEOS (FAVORITOS) */}
       <div className="max-w-6xl mx-auto pt-6">
-        <h2 className="text-2xl font-black text-slate-800 mb-6 tracking-tight flex items-center gap-2">
+        <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6 tracking-tight flex items-center gap-2">
           ❤️ Mi Lista de Deseos
         </h2>
 
         {vuelosFavoritos.length === 0 ? (
-          <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-slate-200 flex flex-col items-center">
-            <HeartCrack size={64} className="text-slate-300 mb-4" />
-            <h3 className="text-xl font-bold text-slate-800">Aún no tienes vuelos guardados</h3>
-            <p className="text-slate-500 mt-2 mb-6">Explora el mundo y dale al corazón para guardar tus favoritos aquí.</p>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-16 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center transition-colors">
+            <HeartCrack size={64} className="text-slate-300 dark:text-slate-700 mb-4" />
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Aún no tienes vuelos guardados</h3>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 mb-6">Explora el mundo y dale al corazón para guardar tus favoritos aquí.</p>
             <button 
               onClick={() => navigate('/')}
-              className="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+              className="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none"
             >
               BUSCAR VUELOS
             </button>
@@ -259,27 +259,27 @@ export default function Profile() {
         )}
       </div>
 
-      {/* RESERVAS (Intacto) */}
+      {/* RESERVAS */}
       <div className="max-w-6xl mx-auto pt-6">
-        <h2 className="text-2xl font-black mb-6 text-slate-800 tracking-tight">✈️ Mis Reservas</h2>
+        <h2 className="text-2xl font-black mb-6 text-slate-800 dark:text-white tracking-tight">✈️ Mis Reservas</h2>
         {reservas.length === 0 ? (
-          <div className="bg-white rounded-3xl p-8 text-center border-2 border-dashed border-slate-200">
-            <p className="text-slate-400 font-bold">No tienes reservas todavía.</p>
+          <div className="bg-white dark:bg-slate-900 p-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl transition-colors">
+            <p className="text-slate-400 dark:text-slate-500 font-bold">No tienes reservas todavía.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reservas.map((r) => (
-              <div key={r.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                <h3 className="text-xl font-black text-slate-800 mb-2">
+              <div key={r.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all">
+                <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">
                   {r.vuelos?.origen} → {r.vuelos?.destino}
                 </h3>
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-500">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 mr-2">Fecha:</span> 
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-2">Fecha:</span> 
                     {new Date(r.vuelos?.fecha_salida).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>
-                  <p className="text-sm font-semibold text-blue-600">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 mr-2">Precio:</span> 
+                  <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-2">Precio:</span> 
                     {r.vuelos?.precio}€
                   </p>
                 </div>
@@ -289,12 +289,12 @@ export default function Profile() {
         )}
       </div>
 
-      {/* CERRAR SESIÓN (Intacto) */}
-      <div className="bg-white rounded-2xl shadow-md p-6 max-w-4xl mx-auto mt-12">
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Sesión</h2>
+      {/* CERRAR SESIÓN */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-md p-6 max-w-4xl mx-auto mt-12 border dark:border-slate-800">
+        <h2 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Sesión</h2>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-95"
+          className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-95 dark:bg-red-900/10 dark:border-red-900/20 dark:text-red-500 dark:hover:bg-red-600 dark:hover:text-white"
         >
           🚪 Cerrar sesión
         </button>

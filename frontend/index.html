@@ -1,13 +1,32 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>SkyFlow | Panel de Control</title>
+
+		<script>
+			;(function () {
+				// Intentamos leer el tema guardado
+				try {
+					const theme = localStorage.getItem("theme")
+					// Si es 'dark', aplicamos la clase YA MISMO al HTML
+					if (theme === "dark") {
+						document.documentElement.classList.add("dark")
+					} else {
+						// Si no, la quitamos por si acaso
+						document.documentElement.classList.remove("dark")
+					}
+				} catch (e) {
+					// Si falla (ej. navegación privada), no hacemos nada
+				}
+			})()
+		</script>
+	</head>
+
+	<body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+		<div id="root"></div>
+		<script type="module" src="/src/main.jsx"></script>
+	</body>
 </html>

@@ -14,82 +14,93 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 function App() {
   return (
     <>
-    <Toaster 
-      position="top-center"
-      toastOptions={{
-        className: 'font-sans font-medium',
-        success: {
-          duration: 4000,
-          iconTheme: { primary: '#10b981', secondary: '#fff' },
-        },
-        error: {
-          duration: 5000,
-          style: { background: '#ef4444', color: '#fff' },
-        },
-      }}
-    />
-    <Router>
-      <Header />
-      <div className="container mx-auto p-4">
-        <Routes>
+      {/* 🍞 CONFIGURACIÓN DINÁMICA DE TOASTS */}
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          className: 'font-sans font-medium dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700',
+          success: {
+            duration: 4000,
+            iconTheme: { primary: '#10b981', secondary: '#fff' },
+          },
+          error: {
+            duration: 5000,
+            // Quitamos el background fijo rojo para que el Modo Oscuro de Tailwind lo maneje 
+            // o lo dejamos estilizado para que no desentone
+            style: { background: '#ef4444', color: '#fff' },
+          },
+        }}
+      />
+      
+      <Router>
+        {/* El Header ya tiene su lógica de dark: incorporada */}
+        <Header />
 
-          {/* 🔓 Público */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        {/* Añadimos min-h-screen y transition-colors para que 
+          toda la zona de contenido cambie suavemente 
+        */}
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+          <div className="container mx-auto p-4">
+            <Routes>
 
-          {/* 🔐 Usuario logueado */}
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
+              {/* 🔓 Público */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-          <Route 
-            path="/my-bookings" 
-            element={
-              <ProtectedRoute>
-                <MyBookings />
-              </ProtectedRoute>
-            } 
-          />
+              {/* 🔐 Usuario logueado */}
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
 
-          {/* 🎫 TARJETA DE EMBARQUE */}
-          <Route 
-            path="/boarding-pass/:reservaId" 
-            element={
-              <ProtectedRoute>
-                <BoardingPass />
-              </ProtectedRoute>
-            } 
-          />
+              <Route 
+                path="/my-bookings" 
+                element={
+                  <ProtectedRoute>
+                    <MyBookings />
+                  </ProtectedRoute>
+                } 
+              />
 
-          {/* 🧑‍✈️ SOLO EMPLEADO */}
-          <Route 
-            path="/assigned_flights" 
-            element={
-              <ProtectedRoute requiredRole="empleado">
-                <AssignedFlights />
-              </ProtectedRoute>
-            } 
-          />
+              {/* 🎫 TARJETA DE EMBARQUE */}
+              <Route 
+                path="/boarding-pass/:reservaId" 
+                element={
+                  <ProtectedRoute>
+                    <BoardingPass />
+                  </ProtectedRoute>
+                } 
+              />
 
-          {/* 🛠️ PANEL DE ADMINISTRACIÓN (Mesa limpia) */}
-          <Route 
-            path="/vuelos" 
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <Vuelos />
-              </ProtectedRoute>
-            } 
-          />
+              {/* 🧑‍✈️ SOLO EMPLEADO */}
+              <Route 
+                path="/assigned_flights" 
+                element={
+                  <ProtectedRoute>
+                    <AssignedFlights />
+                  </ProtectedRoute>
+                } 
+              />
 
-        </Routes>
-      </div>
-    </Router>
+              {/* 🛠️ PANEL DE ADMINISTRACIÓN */}
+              <Route 
+                path="/vuelos" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Vuelos />
+                  </ProtectedRoute>
+                } 
+              />
+
+            </Routes>
+          </div>
+        </div>
+      </Router>
     </>
   );
 }
