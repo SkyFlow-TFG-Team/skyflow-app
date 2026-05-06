@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plane, Calendar, Clock, User, Trash2, MapPin, Heart } from 'lucide-react';
+import { Plane, Calendar, Clock, User, Trash2, MapPin, Heart, UserPlus } from 'lucide-react';
 
 import logoIberia from '../../assets/logos/iberia.png';
 import logoRyanair from '../../assets/logos/ryanair.png';
@@ -15,7 +15,7 @@ const LOGOS_AEROLINEAS = {
   'wizzair': logoWizzair
 };
 
-const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggleFavorito }) => {
+const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggleFavorito, onAsignar }) => {
   const nombreRaw = vuelo.aerolineas?.nombre || "SkyFlow";
   const nombreKey = nombreRaw.toLowerCase().trim();
   const logoUrl = LOGOS_AEROLINEAS[nombreKey] || 
@@ -74,8 +74,10 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
           </div>
 
           <div className="flex-1 flex items-center relative group/plane mx-2">
-             <div className="h-[2px] w-full border-t-2 border-dashed border-slate-200 dark:border-slate-700 relative">
-                <div className="absolute -top-[11px] left-0 w-full transition-all duration-1000 group-hover/plane:translate-x-[85%]">
+             {/* Cambiado h-[2px] por h-0.5 */}
+             <div className="h-0.5 w-full border-t-2 border-dashed border-slate-200 dark:border-slate-700 relative">
+                {/* Cambiado -top-[11px] por -top-2.75 */}
+                <div className="absolute -top-2.75 left-0 w-full transition-all duration-1000 group-hover/plane:translate-x-[85%]">
                    <Plane className="text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400 rotate-90 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]" size={20} />
                 </div>
              </div>
@@ -113,12 +115,20 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
         {/* BOTONES */}
         <div className="space-y-2">
           {perfil?.rol === 'admin' ? (
-            <button 
-              onClick={() => onEliminar(vuelo.id)}
-              className="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold py-3 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300"
-            >
-              ELIMINAR VUELO
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => onAsignar?.(vuelo)}
+                className="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95"
+              >
+                <UserPlus size={16} /> Tripulación
+              </button>
+              <button 
+                onClick={() => onEliminar(vuelo.id)}
+                className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300"
+              >
+                <Trash2 size={20} />
+              </button>
+            </div>
           ) : (
             <button 
               onClick={() => onReservar(vuelo.id)}

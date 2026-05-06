@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../api/api';
 import FormularioVuelo from '../components/vuelos/FormularioVuelo'; 
 import FormularioAerolinea from '../components/vuelos/FormularioAerolinea';
 import { supabase } from "../supabaseClient";
 import toast from 'react-hot-toast';
 import VueloCard from '../components/vuelos/VueloCard';
+import { X } from 'lucide-react';
 
 const PreciosHistograma = ({ vuelos }) => {
   const precios = vuelos.map(v => v.precio).sort((a, b) => a - b);
@@ -42,7 +42,13 @@ const Vuelos = () => {
   const [cargando, setCargando] = useState(true);
   const [filtroOrigen, setFiltroOrigen] = useState('');
   const [filtroDestino, setFiltroDestino] = useState('');
-  const navigate = useNavigate();
+  
+  // ESTADOS ASIGNACIÓN TRIPULACIÓN
+  const [showModalAsignar, setShowModalAsignar] = useState(false);
+  const [vueloParaAsignar, setVueloParaAsignar] = useState(null);
+  const [empleados, setEmpleados] = useState([]);
+  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState("");
+  const [rolTripulante, setRolTripulante] = useState("Piloto");
 
   const totalVuelos = vuelos.length;
   const contadorDestinos = vuelos.reduce((acc, v) => {
@@ -56,7 +62,7 @@ const Vuelos = () => {
   const vueloMasCaro = vuelos.reduce((max, v) => v.precio > (max?.precio || 0) ? v : max, null);
   const vueloMasBarato = vuelos.reduce((min, v) => v.precio < (min?.precio || Infinity) ? v : min, null);
 
-  const cargarVuelos = async (origenOverride, destinoOverride) => {
+  const cargarVuelos = useCallback(async (origenOverride, destinoOverride) => {
     const toastId = toast.loading("Sincronizando con el radar de SkyFlow...");
     try {
       const origenFinal = origenOverride !== undefined ? origenOverride : filtroOrigen;
@@ -73,7 +79,7 @@ const Vuelos = () => {
       toast.dismiss(toastId);
       toast.error("Error al cargar los vuelos.");
     }
-  };
+  }, [filtroOrigen, filtroDestino]);
 
   const eliminarVuelos = async (id) => {
     if (window.confirm("¿Seguro que quieres eliminar este vuelo?")) {
@@ -89,6 +95,32 @@ const Vuelos = () => {
     }
   };
 
+  const cargarEmpleados = async () => {
+    const { data, error } = await supabase
+      .from("perfiles")
+      .select("id, nombre, apellidos")
+      .eq("rol", "empleado");
+    if (!error) setEmpleados(data);
+  };
+
+  const manejarAsignacion = async () => {
+    if (!empleadoSeleccionado) return toast.error("Selecciona un empleado");
+    const { error } = await supabase
+      .from("asignaciones_empleados")
+      .insert([{ 
+        vuelo_id: vueloParaAsignar.id, 
+        empleado_id: empleadoSeleccionado,
+        rol_en_vuelo: rolTripulante 
+      }]);
+
+    if (error) {
+      toast.error("Error o empleado ya asignado a este vuelo");
+    } else {
+      toast.success("¡Tripulante asignado! 🧑‍✈️");
+      setShowModalAsignar(false);
+    }
+  };
+
   useEffect(() => {
     let montado = true;
     const inicializar = async () => {
@@ -101,7 +133,7 @@ const Vuelos = () => {
     };
     inicializar();
     return () => { montado = false; };
-  }, []);
+  }, [cargarVuelos]);
 
   if (cargando) return <div className="min-h-screen flex items-center justify-center dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest animate-pulse">🛰️ Sincronizando SkyFlow...</div>;
 
@@ -116,29 +148,29 @@ const Vuelos = () => {
 
       {perfil?.rol === "admin" && (
         <>
-          {/* Tarjetas de estadísticas rápidas */}
           <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+             {/* Cambiado rounded-[24px] por rounded-3xl */}
+             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Total vuelos</p>
                <p className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalVuelos}</p>
              </div>
-             <div className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Destino Top</p>
                <p className="text-xl font-black text-slate-800 dark:text-white truncate">{destinoMasRepetido}</p>
              </div>
-             <div className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Más caro</p>
                <p className="text-xl font-black text-red-500 dark:text-red-400">{vueloMasCaro ? `${vueloMasCaro.precio}€` : "-"}</p>
              </div>
-             <div className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Más barato</p>
                <p className="text-xl font-black text-green-500 dark:text-green-400">{vueloMasBarato ? `${vueloMasBarato.precio}€` : "-"}</p>
              </div>
           </div>
 
-          {/* DASHBOARD VISUAL */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+            {/* Cambiado rounded-[32px] por rounded-4xl */}
+            <div className="bg-white dark:bg-slate-900 rounded-4xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
               <p className="text-xs font-black text-slate-400 dark:text-slate-500 mb-6 uppercase tracking-widest">Top destinos</p>
               <div className="space-y-4">
                 {destinosOrdenados.slice(0, 5).map(([dest, cnt]) => (
@@ -155,7 +187,7 @@ const Vuelos = () => {
                 ))}
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-4xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
               <p className="text-xs font-black text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-widest">Distribución de precios</p>
               <PreciosHistograma vuelos={vuelos} />
             </div>
@@ -199,10 +231,62 @@ const Vuelos = () => {
               vuelo={vuelo} 
               perfil={perfil} 
               onEliminar={eliminarVuelos} 
+              onAsignar={(v) => {
+                setVueloParaAsignar(v);
+                cargarEmpleados();
+                setShowModalAsignar(true);
+              }}
             />
           ))}
         </div>
       </section>
+
+      {/* MODAL DE ASIGNACIÓN */}
+      {showModalAsignar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 w-full max-md rounded-5xl p-8 border dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-slate-800 dark:text-white italic tracking-tighter">Asignar <span className="text-blue-600">Tripulación</span></h2>
+              <button onClick={() => setShowModalAsignar(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"><X /></button>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 ml-2">Seleccionar Empleado</label>
+                <select 
+                  className="w-full bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl dark:text-white border-none outline-none focus:ring-2 focus:ring-blue-500 appearance-none transition-all"
+                  onChange={(e) => setEmpleadoSeleccionado(e.target.value)}
+                >
+                  <option value="">Tripulante disponible...</option>
+                  {empleados.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.nombre} {emp.apellidos}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 ml-2">Rol en el vuelo</label>
+                <select 
+                  className="w-full bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl dark:text-white border-none outline-none focus:ring-2 focus:ring-blue-500 appearance-none transition-all"
+                  onChange={(e) => setRolTripulante(e.target.value)}
+                >
+                  <option value="Piloto">Piloto</option>
+                  <option value="Co-Piloto">Co-Piloto</option>
+                  <option value="Sobrecargo">Sobrecargo</option>
+                  <option value="TCP">TCP</option>
+                </select>
+              </div>
+
+              <button 
+                onClick={manejarAsignacion}
+                className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20 active:scale-95"
+              >
+                Confirmar Asignación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
