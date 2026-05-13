@@ -31,8 +31,24 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
 
   const horaFormateada = obtenerHora();
 
+  // 🔹 NUEVA LÓGICA: Control de vuelos caducados
+  const fechaVuelo = new Date(vuelo.fecha_salida);
+  const fechaActual = new Date();
+  
+  // ¿La fecha de salida es anterior a este mismo momento?
+  const esPasado = vuelo.fecha_salida ? fechaVuelo < fechaActual : false;
+  const sinPlazas = vuelo.plazas_disponibles === 0;
+  
+  // Bloqueamos el botón si ya pasó o si no quedan asientos
+  const botonBloqueado = esPasado || sinPlazas;
+
+  // Texto dinámico para el botón del cliente
+  let textoBoton = 'RESERVAR ASIENTO';
+  if (esPasado) textoBoton = 'VUELO FINALIZADO';
+  else if (sinPlazas) textoBoton = 'VUELO COMPLETO';
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-500 overflow-hidden group">
+    <div className={`bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-all duration-500 overflow-hidden group ${esPasado ? 'opacity-75 grayscale-[30%]' : 'hover:shadow-2xl hover:border-blue-200 dark:hover:border-blue-500/30'}`}>
       
       {/* HEADER: LOGO Y PRECIO */}
       <div className="p-5 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
@@ -45,7 +61,7 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
         </div>
         <div className="text-right flex flex-col items-end">
           <div className="flex items-center gap-3">
-            {perfil && perfil.rol !== 'admin' && onToggleFavorito && (
+            {perfil && perfil.rol !== 'admin' && onToggleFavorito && !esPasado && (
               <button 
                 onClick={() => onToggleFavorito(vuelo.id)}
                 className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-90"
@@ -74,11 +90,9 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
           </div>
 
           <div className="flex-1 flex items-center relative group/plane mx-2">
-             {/* Cambiado h-[2px] por h-0.5 */}
              <div className="h-0.5 w-full border-t-2 border-dashed border-slate-200 dark:border-slate-700 relative">
-                {/* Cambiado -top-[11px] por -top-2.75 */}
-                <div className="absolute -top-2.75 left-0 w-full transition-all duration-1000 group-hover/plane:translate-x-[85%]">
-                   <Plane className="text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400 rotate-90 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]" size={20} />
+                <div className={`absolute -top-2.75 left-0 w-full transition-all duration-1000 ${esPasado ? 'translate-x-[85%]' : 'group-hover/plane:translate-x-[85%]'}`}>
+                   <Plane className={`rotate-90 ${esPasado ? 'text-slate-400 dark:text-slate-600 fill-slate-400 dark:fill-slate-600' : 'text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]'}`} size={20} />
                 </div>
              </div>
           </div>
@@ -94,19 +108,19 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
 
         {/* DETALLES GRID */}
         <div className="grid grid-cols-2 gap-3 mb-6 bg-slate-50/80 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 transition-colors">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-            <Calendar size={14} className="text-blue-500 dark:text-blue-400" />
+          <div className={`flex items-center gap-2 text-xs font-bold ${esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
+            <Calendar size={14} className={esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-blue-500 dark:text-blue-400'} />
             {vuelo.fecha_salida ? new Date(vuelo.fecha_salida).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : "---"}
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-            <Clock size={14} className="text-blue-500 dark:text-blue-400" />
+          <div className={`flex items-center gap-2 text-xs font-bold ${esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
+            <Clock size={14} className={esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-blue-500 dark:text-blue-400'} />
             {horaFormateada}
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-            <User size={14} className="text-blue-500 dark:text-blue-400" />
-            <span className={vuelo.plazas_disponibles === 0 ? 'text-red-500' : ''}>{vuelo.plazas_disponibles} plazas</span>
+          <div className={`flex items-center gap-2 text-xs font-bold ${esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
+            <User size={14} className={esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-blue-500 dark:text-blue-400'} />
+            <span className={sinPlazas && !esPasado ? 'text-red-500' : ''}>{vuelo.plazas_disponibles} plazas</span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">
+          <div className={`flex items-center gap-2 text-xs font-bold uppercase ${esPasado ? 'text-slate-400 dark:text-slate-500' : 'text-blue-600 dark:text-blue-400'}`}>
             <Plane size={14} />
             DIRECTO
           </div>
@@ -118,7 +132,12 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
             <div className="flex gap-2">
               <button 
                 onClick={() => onAsignar?.(vuelo)}
-                className="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95"
+                disabled={esPasado}
+                className={`flex-1 font-black py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest active:scale-95 ${
+                  esPasado 
+                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' 
+                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'
+                }`}
               >
                 <UserPlus size={16} /> Tripulación
               </button>
@@ -132,14 +151,14 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
           ) : (
             <button 
               onClick={() => onReservar(vuelo.id)}
-              disabled={vuelo.plazas_disponibles === 0}
+              disabled={botonBloqueado}
               className={`w-full font-black py-4 rounded-2xl transition-all duration-300 shadow-lg tracking-tight ${
-                vuelo.plazas_disponibles === 0 
+                botonBloqueado 
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none' 
                 : 'bg-blue-600 text-white hover:bg-blue-700 dark:shadow-blue-900/20 shadow-blue-200 active:scale-95 text-lg'
               }`}
             >
-              {vuelo.plazas_disponibles === 0 ? 'VUELO COMPLETO' : 'RESERVAR ASIENTO'}
+              {textoBoton}
             </button>
           )}
         </div>
