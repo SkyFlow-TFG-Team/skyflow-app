@@ -9,7 +9,7 @@ import { HeartCrack } from "lucide-react"; // 🔹 TAREA 4
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [reservas, setReservas] = useState([]);
-  
+
   // Favoritos
   const [vuelosFavoritos, setVuelosFavoritos] = useState([]);
   const [favoritosIds, setFavoritosIds] = useState([]);
@@ -48,7 +48,7 @@ export default function Profile() {
             .from('favoritos')
             .select('vuelo_id')
             .eq('cliente_id', user.id);
-          
+
           const idsFavoritos = favsData ? favsData.map(f => f.vuelo_id) : [];
           setFavoritosIds(idsFavoritos);
 
@@ -74,11 +74,11 @@ export default function Profile() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       await supabase.from('favoritos').delete().match({ cliente_id: user.id, vuelo_id: vueloId });
-      
+
       // Quitar de la pantalla sin recargar
       setFavoritosIds(prev => prev.filter(id => id !== vueloId));
       setVuelosFavoritos(prev => prev.filter(vuelo => vuelo.id !== vueloId));
-      
+
       toast.success("Vuelo eliminado de tu lista", { icon: '🗑️' });
     } catch {
       toast.error("Error al quitar de favoritos");
@@ -148,9 +148,9 @@ export default function Profile() {
 
   // Badge de color según rol
   const rolColor = {
-    admin:    "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
+    admin: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
     empleado: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-    cliente:  "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
+    cliente: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
   };
 
   if (loading) return <p className="text-center mt-10 font-bold text-slate-500 animate-pulse dark:text-slate-400">Cargando perfil...</p>;
@@ -235,7 +235,7 @@ export default function Profile() {
             <HeartCrack size={64} className="text-slate-300 dark:text-slate-700 mb-4" />
             <h3 className="text-xl font-bold text-slate-800 dark:text-white">Aún no tienes vuelos guardados</h3>
             <p className="text-slate-500 dark:text-slate-400 mt-2 mb-6">Explora el mundo y dale al corazón para guardar tus favoritos aquí.</p>
-            <button 
+            <button
               onClick={() => navigate('/')}
               className="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none"
             >
@@ -245,14 +245,14 @@ export default function Profile() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {vuelosFavoritos.map((vuelo) => (
-              <VueloCard 
-                key={vuelo.id} 
-                vuelo={vuelo} 
-                perfil={profile} 
-                onReservar={handleIrAReservar} 
-                isFavorito={true} 
-                onToggleFavorito={handleToggleFavorito} 
-                onEliminar={() => {}} 
+              <VueloCard
+                key={vuelo.id}
+                vuelo={vuelo}
+                perfil={profile}
+                onReservar={handleIrAReservar}
+                isFavorito={true}
+                onToggleFavorito={handleToggleFavorito}
+                onEliminar={() => { }}
               />
             ))}
           </div>
@@ -275,11 +275,11 @@ export default function Profile() {
                 </h3>
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-2">Fecha:</span> 
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-2">Fecha:</span>
                     {new Date(r.vuelos?.fecha_salida).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>
                   <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-2">Precio:</span> 
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mr-2">Precio:</span>
                     {r.vuelos?.precio}€
                   </p>
                 </div>

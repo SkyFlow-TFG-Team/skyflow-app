@@ -65,7 +65,7 @@ export default function MyBookings() {
           const doc = new jsPDF();
           const nombrePasajero = perfil?.nombre || "Pasajero SkyFlow";
           const numAsiento = reserva?.asiento || "S/N";
-          
+
           const qrData = `SkyFlow|Reserva:${reserva?.id}|Asiento:${numAsiento}|Vuelo:${vuelo?.origen}-${vuelo?.destino}`;
           const qrImage = await QRCode.toDataURL(qrData);
 
@@ -144,13 +144,13 @@ export default function MyBookings() {
 
             return (
               <div key={r.id} className="bg-white dark:bg-slate-900 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col md:flex-row hover:shadow-md dark:hover:border-slate-700 transition-all duration-300">
-                
+
                 <div className="p-8 flex-1 text-left">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-[10px] font-black px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full uppercase italic">
                       Confirmado
                     </span>
-                    
+
                     <div className="flex items-center gap-1.5 bg-blue-600 dark:bg-blue-500 px-3 py-1.5 rounded-xl shadow-lg dark:shadow-none">
                       <Armchair size={14} className="text-white" />
                       <span className="text-[11px] font-black text-white uppercase">

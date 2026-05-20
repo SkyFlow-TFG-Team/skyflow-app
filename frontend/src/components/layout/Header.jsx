@@ -2,18 +2,18 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../supabaseClient";
 import { Link, useNavigate } from "react-router-dom";
 import { useNotificaciones } from "../../hooks/useNotificaciones";
-import { 
-  Bell, 
-  Sun, 
-  Moon, 
-  LogOut, 
-  User, 
-  LayoutDashboard, 
-  Briefcase, 
-  Settings, 
+import {
+  Bell,
+  Sun,
+  Moon,
+  LogOut,
+  User,
+  LayoutDashboard,
+  Briefcase,
+  Settings,
   Plane,
-  Calendar 
-} from "lucide-react"; 
+  Calendar
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 
@@ -36,7 +36,7 @@ const Header = () => {
   const [perfil, setPerfil] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [panelNotifAbierto, setPanelNotifAbierto] = useState(false);
-  
+
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const notifRef = useRef(null);
   const menuRef = useRef(null);
@@ -115,9 +115,9 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-[100] flex justify-between items-center p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b dark:border-slate-800 transition-all duration-500">
-      
+
       {/* LOGO */}
-      <div 
+      <div
         className="flex items-center gap-2 group cursor-pointer"
         onClick={() => navigate("/")}
       >
@@ -130,9 +130,9 @@ const Header = () => {
       </div>
 
       <div className="flex gap-4 items-center">
-        
+
         {/* BOTÓN TEMA */}
-        <button 
+        <button
           onClick={toggleTheme}
           className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 hover:ring-2 hover:ring-blue-500 transition-all shadow-sm"
         >
@@ -150,10 +150,10 @@ const Header = () => {
             {/* CAMPANIA NOTIF */}
             <div className="relative" ref={notifRef}>
               <button
-                onClick={(e) => { 
+                onClick={(e) => {
                   e.stopPropagation();
-                  setPanelNotifAbierto(!panelNotifAbierto); 
-                  setMenuAbierto(false); 
+                  setPanelNotifAbierto(!panelNotifAbierto);
+                  setMenuAbierto(false);
                 }}
                 className="relative p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-slate-600 dark:text-slate-300"
               >
@@ -196,11 +196,11 @@ const Header = () => {
 
             {/* MENÚ USUARIO */}
             <div className="relative" ref={menuRef}>
-              <button 
-                onClick={(e) => { 
+              <button
+                onClick={(e) => {
                   e.stopPropagation();
-                  setMenuAbierto(!menuAbierto); 
-                  setPanelNotifAbierto(false); 
+                  setMenuAbierto(!menuAbierto);
+                  setPanelNotifAbierto(false);
                 }}
                 className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 pl-4 pr-3 py-1.5 rounded-2xl border border-transparent hover:border-blue-500/30 transition-all group"
               >
