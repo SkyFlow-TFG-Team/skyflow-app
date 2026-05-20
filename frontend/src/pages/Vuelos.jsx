@@ -149,7 +149,6 @@ const Vuelos = () => {
       {perfil?.rol === "admin" && (
         <>
           <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-             {/* Cambiado rounded-[24px] por rounded-3xl */}
              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Total vuelos</p>
                <p className="text-3xl font-black text-blue-600 dark:text-blue-400">{totalVuelos}</p>
@@ -169,7 +168,6 @@ const Vuelos = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {/* Cambiado rounded-[32px] por rounded-4xl */}
             <div className="bg-white dark:bg-slate-900 rounded-4xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
               <p className="text-xs font-black text-slate-400 dark:text-slate-500 mb-6 uppercase tracking-widest">Top destinos</p>
               <div className="space-y-4">

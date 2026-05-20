@@ -45,7 +45,6 @@ const AssignedFlights = () => {
     setCargandoPasajeros(true);
     setPasajeros([]);
     try {
-      // CORRECCIÓN: No pedimos .email porque no está en la tabla perfiles
       const { data, error } = await supabase
         .from('reservas')
         .select(`

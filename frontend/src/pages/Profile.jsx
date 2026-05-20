@@ -10,7 +10,7 @@ export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [reservas, setReservas] = useState([]);
   
-  // 🔹 TAREA 4: Estados para Favoritos
+  // Favoritos
   const [vuelosFavoritos, setVuelosFavoritos] = useState([]);
   const [favoritosIds, setFavoritosIds] = useState([]);
 
@@ -28,20 +28,20 @@ export default function Profile() {
       }
 
       try {
-        // 1. Cargar Perfil
+        // Cargar Perfil
         const perfilRes = await api.get("/usuarios/perfil", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setProfile(perfilRes.data);
         localStorage.setItem("perfil", JSON.stringify(perfilRes.data));
 
-        // 2. Cargar Reservas
+        // Cargar Reservas
         const reservasRes = await api.get("/reservas/mis-reservas", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setReservas(reservasRes.data);
 
-        // 🔹 3. TAREA 4: Cargar Favoritos
+        // Cargar Favoritos
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: favsData } = await supabase
@@ -69,7 +69,7 @@ export default function Profile() {
     loadData();
   }, [navigate]);
 
-  // 🔹 TAREA 4: Eliminar de favoritos desde el perfil
+  // Eliminar de favoritos desde el perfil
   const handleToggleFavorito = async (vueloId) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -85,13 +85,13 @@ export default function Profile() {
     }
   };
 
-  // 🔹 TAREA 4: Redirigir a Home al intentar reservar desde perfil
+  //  Redirigir a Home al intentar reservar desde perfil
   const handleIrAReservar = () => {
     toast('Redirigiendo al buscador para gestionar tu asiento...', { icon: '✈️' });
     navigate('/');
   };
 
-  // 📸 Subir foto de perfil a Supabase Storage
+  // Subir foto de perfil a Supabase Storage
   const handleFotoChange = async (e) => {
     const archivo = e.target.files[0];
     if (!archivo) return;
@@ -136,7 +136,7 @@ export default function Profile() {
     setSubiendoFoto(false);
   };
 
-  // 🚪 Cerrar sesión
+  // Cerrar sesión
   const handleLogout = async () => {
     if (!window.confirm("¿Seguro que quieres cerrar sesión?")) return;
     await supabase.auth.signOut();
@@ -224,7 +224,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* 🔹 TAREA 4: LISTA DE DESEOS (FAVORITOS) */}
+      {/* LISTA DE DESEOS */}
       <div className="max-w-6xl mx-auto pt-6">
         <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6 tracking-tight flex items-center gap-2">
           ❤️ Mi Lista de Deseos

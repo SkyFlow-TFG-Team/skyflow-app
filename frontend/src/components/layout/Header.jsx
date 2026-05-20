@@ -12,11 +12,11 @@ import {
   Briefcase, 
   Settings, 
   Plane,
-  Calendar // <--- Añadido el icono que faltaba
+  Calendar 
 } from "lucide-react"; 
 import toast from "react-hot-toast";
 
-// ─── FUERA del componente ─────────────────────────────────────────────────────
+
 const tiempoRelativo = (fechaStr) => {
   const fecha = new Date(fechaStr);
   if (isNaN(fecha.getTime())) return "";
@@ -42,7 +42,6 @@ const Header = () => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  // REGLA DE ORO: Los hooks siempre deben ir al principio y nunca bajo condiciones
   const { notificaciones, noLeidas, marcarLeida, marcarTodasLeidas } = useNotificaciones(user?.id);
 
   useEffect(() => {
@@ -148,7 +147,7 @@ const Header = () => {
         ) : (
           <div className="flex items-center gap-3">
 
-            {/* CAMPANA NOTIF */}
+            {/* CAMPANIA NOTIF */}
             <div className="relative" ref={notifRef}>
               <button
                 onClick={(e) => { 

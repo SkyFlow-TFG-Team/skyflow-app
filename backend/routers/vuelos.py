@@ -13,7 +13,7 @@ class VueloCreate(BaseModel):
     origen: str
     destino: str
     precio: float
-    aerolinea_id: str  # Es un UUID en tu esquema
+    aerolinea_id: str  
     plazas_totales: int
     plazas_disponibles: int
     fecha_salida: str
@@ -21,10 +21,10 @@ class VueloCreate(BaseModel):
 @router.get("/")
 def obtener_vuelos(origen: str = None, destino: str = None):
     try:
-        # 1. Iniciamos la consulta base con el join a aerolíneas
+        # Se inica la consulta base con el join a aerolíneas
         query = supabase.table("vuelos").select("*, aerolineas(nombre)")
 
-        # 2. Aplicamos filtros dinámicos si existen (Tarea 2 y 3 de la Misión B)
+        # Aplicamos filtros dinámicos si existen 
         # Usamos .ilike para que no importe mayúsculas/minúsculas
         if origen:
             query = query.ilike("origen", f"%{origen}%")
@@ -32,8 +32,6 @@ def obtener_vuelos(origen: str = None, destino: str = None):
         if destino:
             query = query.ilike("destino", f"%{destino}%")
 
-        # 3. Ordenamos (eliminado 'ascending' para evitar el error 500)
-        # Supabase ordena de forma ascendente por defecto
         data = query.order("fecha_salida").execute()
         
         return data.data

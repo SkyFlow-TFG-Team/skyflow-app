@@ -10,14 +10,14 @@ const Buscador = ({
   onBuscar, onLimpiar 
 }) => {
 
-  // 🔹 ESTADOS PARA EL AUTOCOMPLETADO
+  //  ESTADOS PARA EL AUTOCOMPLETADO
   const [ciudades, setCiudades] = useState([]);
   const [sugerenciasOrigen, setSugerenciasOrigen] = useState([]);
   const [mostrarSugOrigen, setMostrarSugOrigen] = useState(false);
   const [sugerenciasDestino, setSugerenciasDestino] = useState([]);
   const [mostrarSugDestino, setMostrarSugDestino] = useState(false);
 
-  // 🔹 Cargar ciudades únicas desde Supabase al montar el componente
+  //  Cargar ciudades únicas desde Supabase al montar el componente
   useEffect(() => {
     const cargarCiudades = async () => {
       const { data } = await supabase.from("vuelos").select("origen, destino");
@@ -30,7 +30,7 @@ const Buscador = ({
     cargarCiudades();
   }, []);
 
-  // 🔹 MANEJADORES DE ORIGEN
+  //  MANEJADORES DE ORIGEN
   const handleOrigenChange = (e) => {
     const valor = e.target.value;
     setFiltroOrigen(valor);
@@ -47,7 +47,7 @@ const Buscador = ({
     setMostrarSugOrigen(false);
   };
 
-  // 🔹 MANEJADORES DE DESTINO
+  //  MANEJADORES DE DESTINO
   const handleDestinoChange = (e) => {
     const valor = e.target.value;
     setFiltroDestino(valor);

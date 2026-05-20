@@ -14,7 +14,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 function App() {
   return (
     <>
-      {/* 🍞 CONFIGURACIÓN DINÁMICA DE TOASTS */}
+      {/* CONFIGURACIÓN DINÁMICA DE TOASTS */}
       <Toaster 
         position="top-center"
         toastOptions={{
@@ -26,29 +26,25 @@ function App() {
           error: {
             duration: 5000,
             // Quitamos el background fijo rojo para que el Modo Oscuro de Tailwind lo maneje 
-            // o lo dejamos estilizado para que no desentone
             style: { background: '#ef4444', color: '#fff' },
           },
         }}
       />
       
       <Router>
-        {/* El Header ya tiene su lógica de dark: incorporada */}
         <Header />
 
-        {/* Añadimos min-h-screen y transition-colors para que 
-          toda la zona de contenido cambie suavemente 
-        */}
+      
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
           <div className="container mx-auto p-4">
             <Routes>
 
-              {/* 🔓 Público */}
+              {/* Público */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
-              {/* 🔐 Usuario logueado */}
+              {/* Usuario logueado */}
               <Route 
                 path="/profile" 
                 element={
@@ -67,7 +63,7 @@ function App() {
                 } 
               />
 
-              {/* 🎫 TARJETA DE EMBARQUE */}
+              {/* TARJETA DE EMBARQUE */}
               <Route 
                 path="/boarding-pass/:reservaId" 
                 element={
@@ -77,7 +73,7 @@ function App() {
                 } 
               />
 
-              {/* 🧑‍✈️ SOLO EMPLEADO */}
+              {/* SOLO EMPLEADO */}
               <Route 
                 path="/assigned_flights" 
                 element={
@@ -87,7 +83,7 @@ function App() {
                 } 
               />
 
-              {/* 🛠️ PANEL DE ADMINISTRACIÓN */}
+              {/* PANEL DE ADMINISTRACIÓN */}
               <Route 
                 path="/vuelos" 
                 element={

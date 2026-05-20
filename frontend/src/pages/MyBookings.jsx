@@ -77,7 +77,7 @@ export default function MyBookings() {
           doc.setTextColor(255, 255, 255);
           doc.text("SkyFlow", 20, 28);
 
-          // Información del Pasajero (Variable nombrePasajero conectada aquí)
+          // Información del Pasajero 
           doc.setTextColor(15, 23, 42);
           doc.setFontSize(10);
           doc.text("PASAJERO / PASSENGER", 20, 55);

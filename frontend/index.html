@@ -11,15 +11,13 @@
 				// Intentamos leer el tema guardado
 				try {
 					const theme = localStorage.getItem("theme")
-					// Si es 'dark', aplicamos la clase YA MISMO al HTML
+					// Si es dark, aplicamos la clase al HTML
 					if (theme === "dark") {
 						document.documentElement.classList.add("dark")
 					} else {
-						// Si no, la quitamos por si acaso
 						document.documentElement.classList.remove("dark")
 					}
 				} catch (e) {
-					// Si falla (ej. navegación privada), no hacemos nada
 				}
 			})()
 		</script>

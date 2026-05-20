@@ -31,11 +31,11 @@ const VueloCard = ({ vuelo, perfil, onReservar, onEliminar, isFavorito, onToggle
 
   const horaFormateada = obtenerHora();
 
-  // 🔹 NUEVA LÓGICA: Control de vuelos caducados
+  // Control de vuelos caducados
   const fechaVuelo = new Date(vuelo.fecha_salida);
   const fechaActual = new Date();
   
-  // ¿La fecha de salida es anterior a este mismo momento?
+  // Verifica si la fecha de salida es anterior a la fecha actual
   const esPasado = vuelo.fecha_salida ? fechaVuelo < fechaActual : false;
   const sinPlazas = vuelo.plazas_disponibles === 0;
   

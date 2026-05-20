@@ -37,6 +37,6 @@ def obtener_perfil(user=Depends(get_current_user)):
         if not response.data:
             return {"mensaje": "Perfil no encontrado", "id": user.id}
 
-        return response.data[0] # Devolvemos el primer resultado encontrado
+        return response.data[0] 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

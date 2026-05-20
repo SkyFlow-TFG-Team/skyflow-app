@@ -5,7 +5,6 @@ export const useNotificaciones = (userId) => {
 	const [notificaciones, setNotificaciones] = useState([])
 
 	useEffect(() => {
-		// Si no hay usuario, limpiamos notificaciones y salimos
 		if (!userId) {
 			setNotificaciones([])
 			return
@@ -90,7 +89,7 @@ export const useNotificaciones = (userId) => {
 			.eq("usuario_id", userId)
 	}, [userId])
 
-	// Aseguramos que siempre devolvemos un número, incluso si notificaciones es undefined
+	// Siempre devuelve un número, incluso si notificaciones es undefined
 	const noLeidas = (notificaciones || []).filter((n) => !n.leida).length
 
 	return {

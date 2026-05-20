@@ -190,7 +190,7 @@ const Home = () => {
         )}
       </section>
 
-      {/* MODAL ASIENTOS */}
+      {/* ASIENTOS */}
       {modalAbierto && vueloSeleccionado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-[32px] w-full max-w-[320px] shadow-2xl flex flex-col h-full max-h-[85vh] overflow-hidden border dark:border-slate-800 animate-in zoom-in duration-200">
@@ -216,7 +216,7 @@ const Home = () => {
         </div>
       )}
 
-      {/* MODAL PAGO */}
+      {/* PAGO */}
       {modalPagoAbierto && vueloSeleccionado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="bg-white dark:bg-slate-900 rounded-[32px] w-full max-w-md shadow-2xl overflow-hidden border dark:border-slate-800 animate-in zoom-in duration-200">

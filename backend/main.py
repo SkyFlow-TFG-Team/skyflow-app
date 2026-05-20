@@ -16,7 +16,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Aquí iremos añadiendo más routers según crezcan las funciones
 app.include_router(vuelos.router)
 app.include_router(aerolineas.router)
 app.include_router(usuarios.router)

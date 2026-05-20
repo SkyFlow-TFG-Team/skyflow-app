@@ -14,7 +14,7 @@ const Register = () => {
     e.preventDefault();
     const tId = toast.loading("Creando tu cuenta en SkyFlow...");
 
-    // 1. Crear usuario en Auth
+    // Crear usuario en Auth
     const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
@@ -23,7 +23,7 @@ const Register = () => {
     }
 
     if (data.user) {
-      // 2. Crear perfil en la tabla 'perfiles'
+      // Crear perfil en la tabla 'perfiles'
       const { error: pError } = await supabase
         .from('perfiles')
         .insert([{ id: data.user.id, nombre, apellidos, rol: 'usuario' }]);
